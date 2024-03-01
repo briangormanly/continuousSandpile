@@ -3,9 +3,7 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-
-const TOTAL_GRAINS: usize = 12;
-
+const TOTAL_GRAINS: usize = 19;
 
 fn main() {
     println!("Hello, sandpile!");
@@ -31,11 +29,11 @@ fn main() {
 }
 
 fn checkSlope(mut array: [[[usize; 5]; 5]; 5], x: usize, z: usize, y: usize) -> [[[usize; 5]; 5]; 5] {
-    println!("checkSlope: x: {}, y: {}, z: {}", x, y, z);
+    println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z);
 
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
-        println!("checkSlope: Complete - We are at the bottom of the pile");
+        println!("checkSlope: Nothing to do - We are at the bottom of the pile");
         return array;
     }
     else {
@@ -68,24 +66,12 @@ fn checkSlope(mut array: [[[usize; 5]; 5]; 5], x: usize, z: usize, y: usize) -> 
             let maxX = if x+1 < 5 { x+1 } else { 5 };
             let minY = if y == 0 { 0 } else { y-1 };
             let maxY = if y+1 < 5 { y+1 } else { 5 };
-            println!("minX: {}, maxX: {}, minY: {}, maxY: {}", minX, maxX, minY, maxY);
-            // let minZ = if z==0 { 
-            //     0 
-            // } else { 
-            //     if z == 1 {
-            //         z-1
-            //     } else {
-            //         z-2
-            //     }
-            // };
-            // let maxZ = if z < 5 { z } else { 5 };
-            // println!("minX: {}, maxX: {}, minY: {}, maxY: {}, minZ: {}, maxZ: {}", minX, maxX, minY, maxY, minZ, maxZ);
-            println!("minX: {}, maxX: {}, minY: {}, maxY: {}", minX, maxX, minY, maxY);
-
+            //println!("minX: {}, maxX: {}, minY: {}, maxY: {}", minX, maxX, minY, maxY);
+            
             // iterate for each level below the current level
             for i in minX..maxX + 1 {
                 for j in minY..maxY + 1 {
-                    println!("checkSlope: Checking for grain at i: {}, z: {}, j: {} which has value: {}", i, z-1, j, array[i][z-1][j]);
+                    //println!("checkSlope: Checking for grain at i: {}, z: {}, j: {} which has value: {}", i, z-1, j, array[i][z-1][j]);
                     if array[i][z-1][j] == 0 {
                         belowSlice[belowNumberOpen] = (i, j);
                         belowNumberOpen += 1;
@@ -96,15 +82,13 @@ fn checkSlope(mut array: [[[usize; 5]; 5]; 5], x: usize, z: usize, y: usize) -> 
                 }
             }
 
-            println!("checkSlope: Below number open: {}", belowNumberOpen);
-            println!("checkSlope: Below slice: {:?}", belowSlice);
+            // println!("checkSlope: Below number open: {}", belowNumberOpen);
+            // println!("checkSlope: Below slice: {:?}", belowSlice);
 
             if belowNumberOpen > 0 {
                 // move the grain to the first open spot in the below level
                 array[belowSlice[0].0][z-1][belowSlice[0].1] += 1;
                 array[x][z][y] -= 1;
-                
-
                 println!("checkSlope: Grain moved to x: {}, z: {}, y: {}", belowSlice[0].0, z-1, belowSlice[0].1);
             
             }
