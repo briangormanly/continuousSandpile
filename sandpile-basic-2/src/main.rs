@@ -3,15 +3,16 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
-const TOTAL_GRAINS: usize = 47;
-const X_SIZE: usize = 11;
-const Y_SIZE: usize = 11;
-const Z_SIZE: usize = 4;
+const TOTAL_GRAINS: usize = 280000;
+const X_SIZE: usize = 120;
+const Y_SIZE: usize = 120;
+const Z_SIZE: usize = 60;
 
 fn main() {
     println!("Hello, sandpile!");
 
-    let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
+    //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
+    let mut array: [[[usize; X_SIZE]; Z_SIZE]; Y_SIZE] = [[[0_usize; X_SIZE]; Z_SIZE]; Y_SIZE];
     let x: usize = 2;
     let y: usize = 2;
     let z: usize = 0;
@@ -32,7 +33,7 @@ fn main() {
         let mut aSize = 0;
 
         // check slope of the newly added grain
-        (array, aSize) = checkSlope(array, X_SIZE / 2, current_z, Y_SIZE / 2, 0);
+        aSize = checkSlope(&mut array, X_SIZE / 2, current_z, Y_SIZE / 2, 0);
 
         // print the total number of grains in the avalanche from the last update
         //println!("iteration {} had avalanche size: {}", i, aSize);
@@ -56,19 +57,19 @@ fn main() {
     }
 
     // draw the pile
-    drawPile(array);
+    //drawPile(&array);
 
     // print all the recorded avalanche sizes
     //println!("Avalanche sizes: {:?}", largestAvalancheSizes);
 }
 
-fn checkSlope(mut array: [[[usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: usize, y: usize, mut aSize: usize) -> ([[[usize; X_SIZE]; Z_SIZE]; Y_SIZE], usize) {
+fn checkSlope( array: &mut [ [ [usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: usize, y: usize, mut aSize: usize) -> usize {
     //println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z);
 
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
         //println!("checkSlope: Nothing to do - We are at the bottom of the pile");
-        return (array, aSize);
+        return aSize;
     }
     else {
 
@@ -110,15 +111,15 @@ fn checkSlope(mut array: [[[usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: usize
             aSize += 1;
 
             // check to see if the moved grain needs is settled
-            (array, aSize) = checkSlope(array, belowSlice[0].0, z-1, belowSlice[0].1, aSize);
+            aSize = checkSlope(array, belowSlice[0].0, z-1, belowSlice[0].1, aSize);
         
         }
 
-        return (array, aSize);
+        return aSize;
     }
 }
 
-fn drawPile(array: [[[usize; X_SIZE]; Z_SIZE]; Y_SIZE]) {
+fn drawPile(array: &[[[usize; X_SIZE]; Z_SIZE]; Y_SIZE]) {
     for i in 0..X_SIZE {
         for j in 0..Z_SIZE - 1 {
 
