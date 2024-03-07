@@ -5,15 +5,16 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 20;
+const TOTAL_GRAINS: usize = 30000;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 3;
-const Y_SIZE: usize = 3;
-const Z_SIZE: usize = 4;
+const X_SIZE: usize = 10;
+const Y_SIZE: usize = 10;
+const Z_SIZE: usize = 8;
+const DEBUG: bool = false;
 
 fn main() {
     println!("Hello, sandpile!");
@@ -54,21 +55,21 @@ fn main() {
         let x_dir: usize = rng.gen_range(0..3);
         let y_dir: usize = rng.gen_range(0..3);
 
-        println!("distance_raw {} - distance: {}", distance_raw, distance);
-        println!("x_dir: {}, y_dir: {}", x_dir, y_dir);
+        if DEBUG { println!("distance_raw {} - distance: {}", distance_raw, distance); }
+        if DEBUG { println!("x_dir: {}, y_dir: {}", x_dir, y_dir); }
 
         let mut x = X_SIZE / 2;
         let mut y = Y_SIZE / 2;
-        if x_dir == 0 {
+        if x_dir == 0 && x > 1 {
             x -= distance;
         }
-        else if x_dir == 2 {
+        else if x_dir == 2 && x < X_SIZE - 1 {
             x += distance;
         }
-        if y_dir == 0 {
+        if y_dir == 0 && y > 1{
             y -= distance;
         }
-        else if y_dir == 2 {
+        else if y_dir == 2 && y < Y_SIZE - 1{
             y += distance;
         }
 
@@ -76,7 +77,7 @@ fn main() {
         //println!("x: {}, y: {}, z {}", x, y, current_z);
         while array[x][y][current_z] > 0 {
             if current_z + 1 == Z_SIZE {
-                println!("No open spots for grain at x: {}, y: {} : Z index increase required", x, y);
+                //println!("No open spots for grain at x: {}, y: {} : Z index increase required", x, y);
                 fallen_grains += 1;
                 
             }
@@ -86,7 +87,7 @@ fn main() {
             //println!("x: {}, y: {}, z {}", x, y, current_z);
         }
 
-        println!(" placing grain at x: {}, y: {}, z:{}", x, y, current_z);
+        if DEBUG { println!("\n\n placing grain at x: {}, y: {}, z:{}", x, y, current_z); }
 
         // add the grain to the pile
         array[x][y][current_z] += 1;
@@ -124,7 +125,7 @@ fn main() {
 }
 
 fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: usize, z: usize, mut aSize: usize, fallen_grains: &mut usize) -> usize {
-    //println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z);
+    
 
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
@@ -132,7 +133,8 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
         return aSize;
     }
     else {
-
+        if DEBUG { println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z); }
+        
         // create an 2D array that contains tuples of open spots for each level below the current level (z)
         //let mut openSpots [ [(0, 0); 9]; z ];
         let mut belowSlice = [(0, 0); 8];
@@ -142,36 +144,32 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
         let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE };
         let minY = if y == 0 { 0 } else { y-1 };
         let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE };
-        println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z);
+        if DEBUG { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
 
-        // check for the case when the minX or minY is 0 which means there are open spots out of bounds
-        if (maxX - minX) < 2 || (maxY - minY) < 2 {
-            println!("checkSlope: Out of bounds spot possible: maxX: {}, minX: {}, maxY {}, minY {}", maxX, minX, maxY, minY);
-        }
+        
         
         // iterate for each level below the current level
         for i in minX..maxX + 1 {
             for j in minY..maxY + 1 {
                 // check to see is the spot is in bounds
-                if i >= X_SIZE || j >= Y_SIZE {
-                    //println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j);
+                if i >= X_SIZE || j >= Y_SIZE  {
+                    if DEBUG { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
                     // add an out of bounds spot to the belowSlice array
                     belowSlice[belowNumberOpen] = (i, j);
                     belowNumberOpen += 1;
 
                     //continue;
                 }
-
                 else if array[i][j][z-1] == 0 {
-                    //println!("checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1);
+                    if DEBUG { println!("checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1); }
                     belowSlice[belowNumberOpen] = (i, j);
                     belowNumberOpen += 1;
                 }
             }
         }
 
-        // println!("checkSlope: Below number open: {}", belowNumberOpen);
-        // println!("checkSlope: Below slice: {:?}", belowSlice);
+        if DEBUG { println!("checkSlope: Below number open: {}", belowNumberOpen); }
+        if DEBUG { println!("checkSlope: Below slice: {:?}", belowSlice); }
 
         if belowNumberOpen > 0 {
             // move the grain to the first open spot in the below level
@@ -179,27 +177,55 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
             //determine which spot to move to based on a random number in the range of open spots
             let mut rng = rand::thread_rng();
             let spot = rng.gen_range(0..belowNumberOpen);
+            let mut stopFlag: bool = false;
 
             // check to see if the spot is out of bounds
             if belowSlice[spot].0 >= X_SIZE || belowSlice[spot].1 >= Y_SIZE {
-                println!("checkSlope: Spot chosen is out of bounds: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1);
+                if DEBUG { println!("checkSlope: Spot chosen is out of bounds: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
                 *fallen_grains += 1;
+                stopFlag = true
+            }
+            else if belowSlice[spot].0 == 0 && z > 0 && (z-1) == 1 {
+                // check for the special case where we are on the second to lowest layer, the spot 
+                // is in the 0 index and the lowest layer has a grain there in that spot.
+                if array[belowSlice[spot].0][belowSlice[spot].1][z-2] == 1 {
+                    if DEBUG { println!("checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
+                    *fallen_grains += 1;
+                    stopFlag = true;
+                }
+            }
+            else if belowSlice[spot].1 == 0 && z > 0 && (z-1) == 1 {
+                // check for the special case where we are on the second to lowest layer, the spot 
+                // is in the 0 index and the lowest layer has a grain there in that spot.
+                if array[belowSlice[spot].0][belowSlice[spot].1][z-2] == 1 {
+                    if DEBUG { println!("checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
+                    *fallen_grains += 1;
+                    stopFlag = true;
+                }
             }
             else {
                 array[belowSlice[spot].0][belowSlice[spot].1][z-1] += 1;
 
             }
 
-            //println!("moving grain at x: {}, y: {}, z: {}", x, y, z);
+            if DEBUG { println!("moving grain at x: {}, y: {}, z: {}", x, y, z); }
             array[x][y][z] -= 1;
-            println!("checkSlope: Grain moved to x: {}, y: {}, z: {}", belowSlice[spot].0, belowSlice[spot].1, z-1);
+            if DEBUG { println!("checkSlope: -> Grain moved to x: {}, y: {}, z: {}", belowSlice[spot].0, belowSlice[spot].1, z-1); }
 
             // add the movment to the avalanche total
             aSize += 1;
 
             // check to see if the moved grain needs is settled
-            aSize = checkSlope(array, belowSlice[spot].0, belowSlice[spot].1, z-1, aSize, fallen_grains);
-        
+            if !stopFlag {
+                aSize = checkSlope(array, belowSlice[spot].0, belowSlice[spot].1, z-1, aSize, fallen_grains);
+            }
+        }
+        else {
+            // there are no open spots below, but check for the case when the spot is out of bounds
+            // check for the case when the minX or minY is 0 which means there are open spots out of bounds
+            // if (maxX - minX) < 2 || (maxY - minY) < 2 {
+            //     println!("checkSlope: Out of bounds spot possible: maxX: {}, minX: {}, maxY {}, minY {}", maxX, minX, maxY, minY);
+            // }
         }
         
 
