@@ -5,16 +5,17 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 30000;
+const TOTAL_GRAINS: usize = 5;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 10;
-const Y_SIZE: usize = 10;
-const Z_SIZE: usize = 8;
+const X_SIZE: usize = 120;
+const Y_SIZE: usize = 120;
+const Z_SIZE: usize = 2;
 const DEBUG: bool = false;
+const SHOW_PILE: bool = true;
 
 fn main() {
     println!("Hello, sandpile!");
@@ -36,20 +37,20 @@ fn main() {
         // and a random number for the direction from the center
         // weights for distance from center [7, 5, 2, 1]
         let mut rng = rand::thread_rng();
-        let distance_raw = rng.gen_range(0..12);
+        let distance_raw = rng.gen_range(0..15);
         let distance;
         if distance_raw < 9 {
             distance = 0;
         }
-        else {
+        else if distance_raw < 12 {
             distance = 1;
         }
-        // else if distance_raw < 14 {
-        //     distance = 2;
-        // }
-        // else {
-        //     distance = 3;
-        // }
+        else if distance_raw < 14 {
+            distance = 2;
+        }
+        else {
+            distance = 3;
+        }
        
         // generate a random number for the direction from the center on x and y
         let x_dir: usize = rng.gen_range(0..3);
@@ -74,17 +75,14 @@ fn main() {
         }
 
         // determine z by finding the first open spot on this x,y
-        //println!("x: {}, y: {}, z {}", x, y, current_z);
         while array[x][y][current_z] > 0 {
             if current_z + 1 == Z_SIZE {
-                //println!("No open spots for grain at x: {}, y: {} : Z index increase required", x, y);
                 fallen_grains += 1;
                 
             }
             else {
                 current_z += 1;
             }
-            //println!("x: {}, y: {}, z {}", x, y, current_z);
         }
 
         if DEBUG { println!("\n\n placing grain at x: {}, y: {}, z:{}", x, y, current_z); }
@@ -109,24 +107,23 @@ fn main() {
         
     }
 
+    // draw the pile
+    if SHOW_PILE {
+        drawPile(&array);
+    }
+
+    // validate the pile 
+    validatePile(&array, &mut fallen_grains);
+
     // move the recorded avalanche sizes to the new array
     for i in 0..largestAvalanche {
         println!("Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
     }
 
-    // draw the pile
-    drawPile(&array);
-
-    // validate the pile 
-    validatePile(&array, &mut fallen_grains);
-
-    // print all the recorded avalanche sizes
-    //println!("Avalanche sizes: {:?}", largestAvalancheSizes);
 }
 
 fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: usize, z: usize, mut aSize: usize, fallen_grains: &mut usize) -> usize {
     
-
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
         //println!("checkSlope: Nothing to do - We are at the bottom of the pile");
@@ -220,14 +217,6 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
                 aSize = checkSlope(array, belowSlice[spot].0, belowSlice[spot].1, z-1, aSize, fallen_grains);
             }
         }
-        else {
-            // there are no open spots below, but check for the case when the spot is out of bounds
-            // check for the case when the minX or minY is 0 which means there are open spots out of bounds
-            // if (maxX - minX) < 2 || (maxY - minY) < 2 {
-            //     println!("checkSlope: Out of bounds spot possible: maxX: {}, minX: {}, maxY {}, minY {}", maxX, minX, maxY, minY);
-            // }
-        }
-        
 
         return aSize;
     }
@@ -235,7 +224,6 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
 
 fn drawPile(array: &[[[usize; Z_SIZE]; Y_SIZE]; X_SIZE]) {
     for z in 0..Z_SIZE -1 {
-
 
         for y in 0..Y_SIZE {
 
