@@ -5,15 +5,15 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 5;
+const TOTAL_GRAINS: usize = 180;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 120;
-const Y_SIZE: usize = 120;
-const Z_SIZE: usize = 2;
+const X_SIZE: usize = 10;
+const Y_SIZE: usize = 10;
+const Z_SIZE: usize = 8;
 const DEBUG: bool = false;
 const SHOW_PILE: bool = true;
 
@@ -23,7 +23,8 @@ fn main() {
     let mut fallen_grains = 0;
 
     //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
-    let mut array: [[[usize; Z_SIZE]; Y_SIZE]; X_SIZE] = [[[0_usize; Z_SIZE]; Y_SIZE]; X_SIZE];
+    //let mut array: [[[usize; Z_SIZE]; Y_SIZE]; X_SIZE] = [[[0_usize; Z_SIZE]; Y_SIZE]; X_SIZE];
+    let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
 
     // array that contain the total number of avalanches of each number of grains
     let mut avalancheSizes = [0; TOTAL_GRAINS];
@@ -111,6 +112,7 @@ fn main() {
     if SHOW_PILE {
         drawPile(&array);
     }
+    //drawLevel(&array, 0);
 
     // validate the pile 
     validatePile(&array, &mut fallen_grains);
@@ -122,7 +124,8 @@ fn main() {
 
 }
 
-fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: usize, z: usize, mut aSize: usize, fallen_grains: &mut usize) -> usize {
+//fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: usize, z: usize, mut aSize: usize, fallen_grains: &mut usize) -> usize {
+fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, mut aSize: usize, fallen_grains: &mut usize) -> usize {
     
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
@@ -222,7 +225,7 @@ fn checkSlope( array: &mut [ [ [usize; Z_SIZE]; Y_SIZE]; X_SIZE], x: usize, y: u
     }
 }
 
-fn drawPile(array: &[[[usize; Z_SIZE]; Y_SIZE]; X_SIZE]) {
+fn drawPile(array: &Vec<Vec<Vec<usize>>>) {
     for z in 0..Z_SIZE -1 {
 
         for y in 0..Y_SIZE {
@@ -240,7 +243,22 @@ fn drawPile(array: &[[[usize; Z_SIZE]; Y_SIZE]; X_SIZE]) {
     println!(" ");
 }
 
-fn validatePile(array: &[[[usize; Z_SIZE]; Y_SIZE]; X_SIZE], fallen_grains: &mut usize) {
+fn drawLevel(array: &Vec<Vec<Vec<usize>>>, level: usize) {
+
+    for y in 0..Y_SIZE {
+
+        print!("\n");
+
+        for x in 0..X_SIZE {
+            //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
+            print!("{}", array[x][y][level]);
+        }
+        
+    }
+    println!("\n\n");
+}
+
+fn validatePile(array: &Vec<Vec<Vec<usize>>>, fallen_grains: &mut usize) {
 
     let mut pile_grains = 0;
     let mut empty_spots = 0;
