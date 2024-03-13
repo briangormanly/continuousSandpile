@@ -4,28 +4,31 @@
 #![allow(unused_variables)]
 
 use rand::Rng;
+use rerun::{demo_util::grid, external::glam};
 
-const TOTAL_GRAINS: usize = 10000000;
+const TOTAL_GRAINS: usize = 60;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 400;
-const Y_SIZE: usize = 400;
-const Z_SIZE: usize = 300;
+const X_SIZE: usize = 10;
+const Y_SIZE: usize = 10;
+const Z_SIZE: usize = 10;
 const DEBUG: bool = false;
 const FOLLOW_GRAIN: bool = false;
-const SHOW_PILE: bool = false;
+const SHOW_PILE: bool = true;
 
-fn main() {
-    println!("Hello, sandpile!");
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("Hello, sandpile gui!");
 
     let mut fallen_grains = 0;
 
     //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
     //let mut array: [[[usize; Z_SIZE]; Y_SIZE]; X_SIZE] = [[[0_usize; Z_SIZE]; Y_SIZE]; X_SIZE];
     let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
+    //let mut array = 
 
     // array that contain the total number of avalanches of each number of grains
     let mut avalancheSizes = [0; Z_SIZE * 2];
@@ -113,7 +116,7 @@ fn main() {
     if SHOW_PILE {
         drawPile(&array);
     }
-    //drawLevel(&array, 0);
+    
 
     // validate the pile 
     validatePile(&array, &mut fallen_grains);
@@ -122,6 +125,57 @@ fn main() {
     for i in 0..largestAvalanche + 2 {
         println!("Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
     }
+
+    println!("Hello, sandpile new!");
+    let rr = rerun::RecordingStreamBuilder::new("discrete_sandpile").spawn()?;
+
+    rr.log("my_point", rr.Points2D([32.7, 45.9], rerun::Color::from_rgb(255 as u8, 255 as u8, 0 as u8)))?;
+
+
+
+
+    //let points = grid(glam::Vec3::splat(0.0), glam::Vec3::splat(10.0), 10);
+    //let vec = glam::Vec3;
+
+
+
+    
+    // let colors = grid(glam::Vec3::ZERO, glam::Vec3::splat(255.0), 10)
+    //     .map(|v| rerun::Color::from_rgb(v.x as u8, v.y as u8, v.z as u8));
+
+    // rec.log(
+    //     "Sandpile",
+    //     &rerun::Points3D::new(points)
+    //         .with_colors(colors)
+    //         .with_radii([0.5]),
+    // )?;
+
+
+
+
+    //rec.log("points", &rerun::Points3D::new(points))?;
+
+    Ok(())
+
+    // let rec = rerun::RecordingStream::global(rerun::StoreKind::Recording)?;
+    // rec.log("points", &rerun::archetypes::Points3D::new(points).with_colors(colors))?;
+    // rec.log("image", &rerun::archetypes::Image::new(image))?;
+
+    // for z in 0..Z_SIZE -1 {
+
+    //     for y in 0..Y_SIZE {
+
+    //         print!("\n");
+
+    //         for x in 0..X_SIZE {
+    //             //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
+    //             print!("{}", array[x][y][z]);
+    //         }
+            
+    //     }
+    //     println!("\n\n");
+    // }
+    // println!(" ");
 
 }
 
@@ -225,6 +279,26 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
         return aSize;
     }
 }
+
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     println!("Hello, sandpile new!");
+//     let rec = rerun::RecordingStreamBuilder::new("rerun_example_minimal").spawn()?;
+
+//     let points = grid(glam::Vec3::splat(-10.0), glam::Vec3::splat(10.0), 10);
+//     let colors = grid(glam::Vec3::ZERO, glam::Vec3::splat(255.0), 10)
+//         .map(|v| rerun::Color::from_rgb(v.x as u8, v.y as u8, v.z as u8));
+
+//     rec.log(
+//         "my_points",
+//         &rerun::Points3D::new(points)
+//             .with_colors(colors)
+//             .with_radii([0.5]),
+//     )?;
+
+//     Ok(())
+// }
+
+
 
 fn drawPile(array: &Vec<Vec<Vec<usize>>>) {
     for z in 0..Z_SIZE -1 {
