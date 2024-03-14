@@ -5,18 +5,18 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 10000000;
+const TOTAL_GRAINS: usize = 600;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 400;
-const Y_SIZE: usize = 400;
-const Z_SIZE: usize = 300;
+const X_SIZE: usize = 15;
+const Y_SIZE: usize = 15;
+const Z_SIZE: usize = 8;
 const DEBUG: bool = false;
 const FOLLOW_GRAIN: bool = false;
-const SHOW_PILE: bool = false;
+const SHOW_PILE: bool = true;
 
 fn main() {
     println!("Hello, sandpile!");

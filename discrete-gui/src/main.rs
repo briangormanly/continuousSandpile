@@ -129,7 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Hello, sandpile new!");
     let rr = rerun::RecordingStreamBuilder::new("discrete_sandpile").spawn()?;
 
-    rr.log("my_point", rr.Points2D([32.7, 45.9], rerun::Color::from_rgb(255 as u8, 255 as u8, 0 as u8)))?;
+    //rr.log("my_point", rr.Points2D([32.7, 45.9], rerun::Color::from_rgb(255 as u8, 255 as u8, 0 as u8)))?;
 
 
 

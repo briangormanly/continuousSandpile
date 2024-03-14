@@ -12,6 +12,8 @@ name = "spinning-square"
 
 [dependencies]
 bevy = { version = "0.13.0", features = ["dynamic_linking"] }
+#zeroable = "0.2.0"
+bytemuck = "1.7.0"
 ##NOTE: Remember to revert this (features = ["dynamic_linking"]) before releasing your game! Otherwise you will need to include libbevy_dylib alongside your game if you want it to run. If you remove the "dynamic" feature, your game executable can run standalone. 
 
 [workspace]
