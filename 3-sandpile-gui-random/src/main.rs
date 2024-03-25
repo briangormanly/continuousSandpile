@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
 use bevy::window::PrimaryWindow;
 
 fn main() {
@@ -11,8 +11,9 @@ fn main() {
 
 
 pub fn spawn_grain(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>, asset_server: Res<AssetServer>) {
-
+    let window: &Window = window_query.get_single().unwrap();
     
+    commands.spawn(bundle: (transform))
 }
 
 pub fn setup(mut commands: Commands) {
