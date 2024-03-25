@@ -3,20 +3,37 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 
+/*
+
+ - The final discrete sandpile - Descrete Self organized criticality
+  Starts with everything from 2-sandpile-basic-random
+  Additions / Changes:
+   * Density for each pile location
+     * Sandpile locations can have between 1 and 3 grains in the location
+     *  
+   * Moment
+     * Gains move with a magnatude (speed) and direction 
+       * Initial speed starts at 1 but kenetic energy can be transferred in collosions
+       * speed increases as grain falls 
+     * Direction of impacted gain movement is determined by direction of impacting grain
+   * Energy from impacts radiate through surounding gains
+
+*/
+
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 250000;
+const TOTAL_GRAINS: usize = 200;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 150;
-const Y_SIZE: usize = 150;
-const Z_SIZE: usize = 80;
+const X_SIZE: usize = 11;
+const Y_SIZE: usize = 11;
+const Z_SIZE: usize = 6;
 const DEBUG: bool = false;
 const FOLLOW_GRAIN: bool = false;
-const SHOW_PILE: bool = false;
+const SHOW_PILE: bool = true;
 
 fn main() {
     println!("Hello, sandpile!");
@@ -115,7 +132,7 @@ fn main() {
     }
     
     // draw the lowest level of the pile (or change parameter 2 to see any single level)
-    drawLevel(&array, 0);
+    //drawLevel(&array, 0);
 
     // validate the pile 
     validatePile(&array, &mut fallen_grains);
