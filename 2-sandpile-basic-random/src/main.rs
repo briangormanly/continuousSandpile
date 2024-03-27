@@ -5,15 +5,15 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 600;
+const TOTAL_GRAINS: usize = 300;
 // const X_SIZE: usize = 120;
 // const Y_SIZE: usize = 120;
 // const Z_SIZE: usize = 60;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 15;
-const Y_SIZE: usize = 15;
-const Z_SIZE: usize = 8;
+const X_SIZE: usize = 11;
+const Y_SIZE: usize = 11;
+const Z_SIZE: usize = 10;
 const DEBUG: bool = false;
 const FOLLOW_GRAIN: bool = false;
 const SHOW_PILE: bool = true;
