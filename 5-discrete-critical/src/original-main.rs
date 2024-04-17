@@ -22,12 +22,12 @@
 
 use rand::Rng;
 
-const TOTAL_GRAINS: usize = 2000;
+const TOTAL_GRAINS: usize = 20;
 
 // X_SIZE and Y_SIZE must be a minimum of 8 because of the way the random number for distance from center is generated
-const X_SIZE: usize = 15;
-const Y_SIZE: usize = 15;
-const Z_SIZE: usize = 9;
+const X_SIZE: usize = 5;
+const Y_SIZE: usize = 5;
+const Z_SIZE: usize = 4;
 const DEBUG: bool = false;
 const FOLLOW_GRAIN: bool = false;
 const SHOW_PILE: bool = true;
@@ -90,8 +90,27 @@ fn main() {
             y += distance;
         }
 
-        // determine z by finding the first open spot on this x,y
-        while array[x][y][current_z] > 0 {
+        // check to see if the spot is completely empty, if so, we need to initialize the mass of the spot
+        if array[x][y][current_z] == 0 {
+            array[x][y][current_z] = rand::thread_rng().gen_range(1..5);
+        }
+        println!("x: {}, y: {}, z: {} initialized with mass: {}", x, y, current_z, array[x][y][current_z]);
+
+        // check to see if the spot is full
+        if array[x][y][current_z] > 0 {
+
+            // add the grain to the pile
+            array[x][y][current_z] -= 1;
+
+            // check to see if there is an event
+            let eventProbability = rand::thread_rng().gen_range(0..array[x][y][current_z]);
+            println!("eventProbability: {}", eventProbability);
+
+
+
+
+
+
             if current_z + 1 == Z_SIZE {
                 fallen_grains += 1;
                 
