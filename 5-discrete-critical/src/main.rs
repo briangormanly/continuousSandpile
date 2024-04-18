@@ -250,8 +250,8 @@ fn main() {
         let mut z = Z_SIZE - 1;
 
         // see if the array location is empty and fall until it is not
-        println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z);
-        while !array[x][y][z].grains.is_empty() && array[x][y][z].grains.len() == 0 && z > 0 {
+        println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z);
+        while array[x][y][z].grains.len() == 0 && z > 0 {
             
             z -= 1;
         }
@@ -260,6 +260,8 @@ fn main() {
 
         // add the grain to the location
         array[x][y][z].add_grain(grain);
+
+        if DEBUG && DEBUG_FALLING_GRAIN { println!("array at location x: {}, y: {}, z: {} has grains {}", x, y, z, array[x][y][z].getNumberOfGrains()); }
 
     }
 
