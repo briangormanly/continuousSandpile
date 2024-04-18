@@ -5,7 +5,7 @@
 
 /*
 
- - The final discrete sandpile - Descrete Self organized criticality
+ - Discrete sandpile targeting 
   Starts with everything from 2-sandpile-basic-random
   Additions / Changes:
    * Density for each pile location
@@ -36,10 +36,12 @@ fn main() {
     println!("Hello, sandpile!");
 
     let mut fallen_grains = 0;
+    
 
     //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
     //let mut array: [[[usize; Z_SIZE]; Y_SIZE]; X_SIZE] = [[[0_usize; Z_SIZE]; Y_SIZE]; X_SIZE];
-    let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
+    //let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
+    let mut array: Vec<Vec<Vec<Location>>> = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
 
     // array that contain the total number of avalanches of each number of grains
     let mut avalancheSizes = [0; Z_SIZE * 2];
@@ -103,7 +105,7 @@ fn main() {
             array[x][y][current_z] -= 1;
 
             // check to see if there is an event
-            let eventProbability = rand::thread_rng().gen_range(0..array[x][y][current_z]);
+            let eventProbability = (rand::thread_rng().gen_range(0..12) / 2);
             println!("eventProbability: {}", eventProbability);
 
 

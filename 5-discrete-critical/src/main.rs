@@ -26,9 +26,11 @@ use rand::Rng;
 use std::vec::Vec;
 
 /**
- * Debug flag
+ * Master Debug flag
  */
-const DEBUG: bool = false;
+const DEBUG: bool = true;
+const DEBUG_INIT: bool = true;
+const DEBUG_FALLING_GRAIN: bool = true;
 
 // total grains to drop
 const TOTAL_GRAINS: usize = 100;
@@ -104,7 +106,16 @@ impl Location {
             resilience: 4 + additionalRes,  
         }
     }
-
+    pub fn emptySpace(x: i32, y: i32, z: i32) -> Self {
+        Location {
+            x,
+            y,
+            z,
+            capacity: 0,  
+            grains: Vec::new(),  // Initialize as empty vector
+            resilience: 0,  
+        }
+    }
     fn add_grain(&mut self, grain: Grain) {
         // Check if the location has capacity to add a grain
         if self.grains.len() < self.capacity {
@@ -114,6 +125,9 @@ impl Location {
             // if full, start an avalanche
             println!("Capacity reached, cannot add more grains");
         }
+    }
+    pub fn getNumberOfGrains(&self) -> usize {
+        return self.grains.len();
     }
 }
 
@@ -159,25 +173,37 @@ fn main() {
     let mut rnd = rand::thread_rng();
 
     // create a 3D array to hold the sandpile
-    let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
+    //let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
+
+    // Create a 3D vector
+    let mut array: Vec<Vec<Vec<Location>>> = Vec::with_capacity(X_SIZE);
 
     // cerate locations for all the points in the array within the slope of criticality
     for x in 0..X_SIZE {
+        let mut layer_y: Vec<Vec<Location>> = Vec::with_capacity(Y_SIZE);
         for y in 0..Y_SIZE {
+            let mut column_z: Vec<Location> = Vec::with_capacity(Z_SIZE);
             for z in 0..Z_SIZE {
                 // create a location
                 if x>=z && x<=X_SIZE-z-1 && y>=z && y<=Y_SIZE-z-1 {
                     // create a location
                     let location = Location::new(x as i32, y as i32, z as i32, &mut rnd);
-                    println!("Creating location x: {}, y: {}, z: {} has capacity {} and resilience {}", x, y, z, location.capacity, location.resilience);
+                    column_z.push(location);
+                    // add the location to the array
+                    //if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has capacity {} and resilience {}", x, y, z, array[x][y][z].capacity, array[x][y][z].resilience); }
+
 
                 }
                 else {
-                    // empty location
+                    // empty 
+                    let location = Location::emptySpace(x as i32, y as i32, z as i32);
+                    column_z.push(location);
                     //println!("!!!Location outside of critical slope x: {}, y: {}, z: {}", x, y, z);
                 }
             }
+            layer_y.push(column_z);
         }
+        array.push(layer_y);
     }
 
     
@@ -188,8 +214,8 @@ fn main() {
         let grain = Grain::new(i as u32);
 
         // start with center of the array
-        let mut x = X_SIZE / 2;
-        let mut y = Y_SIZE / 2;
+        let mut x = X_SIZE / 2 - 1;
+        let mut y = Y_SIZE / 2 - 1 ;
 
         // find the gains landing variance from center with more variance in the center
         // using an alpha of 1.5
@@ -214,27 +240,54 @@ fn main() {
         } else {
             x += xVariance as usize;
         }
-
         if yDirection == 0 {
             y -= yVariance as usize;
         } else {
             y += yVariance as usize;
         }
-
-        if DEBUG { println!("Grain {} landed at x: {}, y: {}", i, x, y); }
-
-
         
-        
-        
+        // set the z level to the highest level 
+        let mut z = Z_SIZE - 1;
+
+        // see if the array location is empty and fall until it is not
+        println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z);
+        while !array[x][y][z].grains.is_empty() && array[x][y][z].grains.len() == 0 && z > 0 {
+            
+            z -= 1;
+        }
+
+        if DEBUG && DEBUG_FALLING_GRAIN { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
+
+        // add the grain to the location
+        array[x][y][z].add_grain(grain);
 
     }
 
-
+    // draw the pile
+    drawPile(&array);
 
     // createa Location
     //let mut location = Location::new(0, 0, 0);
 
+}
+
+fn drawPile(array: &Vec<Vec<Vec<Location>>>) {
+    println!("Drawing the pile");
+    for z in (0..Z_SIZE -1).rev() {
+
+        for y in 0..Y_SIZE {
+
+            print!("\n");
+
+            for x in 0..X_SIZE {
+                //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
+                print!("{}", array[x][y][z].getNumberOfGrains());
+            }
+            
+        }
+        println!("\n");
+    }
+    println!(" ");
 }
 
 
