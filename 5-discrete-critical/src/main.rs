@@ -28,9 +28,9 @@ use std::vec::Vec;
 /**
  * Master Debug flag
  */
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 const DEBUG_INIT: bool = true;
-const DEBUG_FALLING_GRAIN: bool = true;
+const DEBUG_AVALANCHE: bool = true;
 
 // total grains to drop
 const TOTAL_GRAINS: usize = 100;
@@ -187,12 +187,15 @@ impl Location {
         let tempSpeed = incomingGrainEnergy + additionalEnergy as usize;
 
         // determine if this purturbation will cause an avalanche
+        if DEBUG && DEBUG_AVALANCHE { 
+            println!("resilience {} < total energy: {} for location {}, {}, {}", self.resilience, tempSpeed, self.x, self.y, self.z); 
+        }
+
         if self.resilience < tempSpeed {
             // start an avalanche
-            println!("Avalanche started at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
+            println!("Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len());
             // set the size of the avalanche
-            let mut avalancheSize = 0;
-            avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+            let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
             
             // ensure that the base avalanche size is not larger than the number of grains
             if self.grainIds.len() < avalancheSize {
@@ -346,6 +349,10 @@ fn main() {
         array.push(layer_y);
     }
 
+    if DEBUG && DEBUG_INIT {
+        println!("---------------- Array created with x: {}, y: {}, z: {} ----------------", array.len(), array[0].len(), array[0][0].len());
+    }
+
     // initialize a vec of all grains
     let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
 
@@ -358,6 +365,10 @@ fn main() {
         grains.push(grain);
     }
 
+    if DEBUG && DEBUG_INIT {
+        println!("---------------- Grains created with count: {} ----------------", grains.len());
+    }
+
     // initialize a vec of all avalanches
     let mut avalanches: Vec<Avalanche> = Vec::with_capacity(TOTAL_GRAINS);
 
@@ -366,17 +377,21 @@ fn main() {
     // or as big
     for i in 0..TOTAL_GRAINS {
         // create a grain 
-        let mut avalanche = Avalanche::new(i as u32);
+        let avalanche = Avalanche::new(i as u32);
         avalanches.push(avalanche);
+    }
+
+    if DEBUG && DEBUG_INIT {
+        println!("---------------- Avalanches created with count: {} ----------------", avalanches.len());
     }
     
 
     for i in 0..TOTAL_GRAINS {
 
-
         // Start the avalanche for the this grains motion
         avalanches[i].addGrain(grains[i].id);
-        
+
+        if DEBUG && DEBUG_AVALANCHE { println!("Grain {} is falling", i); }
 
         // start with center of the array
         let mut x = X_SIZE / 2 - 1;
@@ -415,8 +430,9 @@ fn main() {
         let mut z = Z_SIZE - 1;
 
         // see if the array location is not at capacity and fall until it is not
-        if DEBUG && DEBUG_FALLING_GRAIN { println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z) };
-        while array[x][y][z].grainIds.len() < array[x][y][z].capacity && z > 0 {
+        if DEBUG && DEBUG_AVALANCHE { println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z) };
+
+        while array[x][y][z].resilience == 0 || ( array[x][y][z].grainIds.len() < array[x][y][z].capacity && z > 0 ) {
             z -= 1;
             // increase the energy of the grain up to terminal velocity
             if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
@@ -424,13 +440,13 @@ fn main() {
             }
         }
 
-        if DEBUG && DEBUG_FALLING_GRAIN { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
+        if DEBUG && DEBUG_AVALANCHE { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
 
         // add the grain to the location
         array[x][y][z].grainImpact(grains[i].id, grains[i].energy, &mut rnd);
         
 
-        if DEBUG && DEBUG_FALLING_GRAIN { println!("array at location x: {}, y: {}, z: {} has grains {}", x, y, z, array[x][y][z].getNumberOfGrains()); }
+        if DEBUG && DEBUG_AVALANCHE { println!("array at location x: {}, y: {}, z: {} has grains {}", x, y, z, array[x][y][z].getNumberOfGrains()); }
 
     }
 
