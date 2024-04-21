@@ -99,84 +99,169 @@ impl Grain {
  * They have a capacity for grains and a resilience to purturbations which is 
  * determined as a random value between 1 and 6
  */
-struct Location<'a> {
+struct Location {
+    id: usize,
     x: i32,
     y: i32,
     z: i32,
     capacity: usize,
-    grains: Vec<&'a Grain>,
+    grainIds: Vec::<u32>,
     resilience: usize,
 }
 
-impl<'a> Location<'a> {
+impl Location {
     pub fn new(x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
+        let id = generateXyzId(x as usize, y as usize, z as usize);
+
         // get the order of magnitude of a random power-law distribution
         let additionalCap = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
         let additionalRes = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
         Location {
+            id,
             x,
             y,
             z,
             capacity: BASE_CAPACITY + additionalCap,  
-            grains: Vec::new(),  // Initialize as empty vector
+            grainIds: Vec::<u32>::new(),    // Initialize as empty vector
             resilience: BASE_RESILIENCE + additionalRes,  
         }
     }
     pub fn emptySpace(x: i32, y: i32, z: i32) -> Self {
+        let id = generateXyzId(x as usize, y as usize, z as usize);
+
         Location {
+            id,
             x,
             y,
             z,
             capacity: 0,  
-            grains: Vec::new(),  // Initialize as empty vector
+            grainIds: Vec::<u32>::new(),    // Initialize as empty vector
             resilience: 0,  
         }
     }
-    fn grainImpact(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
+
+
+    // call purtubation
+    // both require:
+    //  - the impacting grains energy at impact (parameter)
+    //  - location resilience (self.resilience)
+    //  - the number of grains in the location (self.gains.len())
+    //  - the ability to add a grain to the avalanche [DO NOT HAVE]
+    // both produce:
+    //  - determining the total impact force
+    //  - determines if resilience is broken and grains avalanche
+    //  - determines the size of the avalanche if one occurs
+    //  - ensures an avalanche is not leger the total number of grains at the location
+
+
+
+
+    pub fn grainImpact(&mut self, grainId: u32, grainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
 
         // first check the impact of the incoming grain on the location
-        self.purtubation(grain, avalanche, rnd);
+        let looseGrainIds = self.purtubation(grainId, grainEnergy, rnd);
 
-        // Check if the location has capacity to add a grain
-        if self.grains.len() < self.capacity {
-            // the location is not full, add the grain
-            self.grains.push(grain);
+        // check to see if the location was perturbed
+        if looseGrainIds.len() == 0 {
+            // the location was not perturbed, add the grain
+            // Check if the location has capacity to add a grain
+            if self.grainIds.len() < self.capacity {
+                // the location is not full, add the grain
+                self.grainIds.push(grainId);
+            } else {
+                // pile is full, but was not perturbed, let the grain fall.
+                println!("Capacity reached, cannot add more grains");
+            }
+            return looseGrainIds;
         } else {
-            // if full, start an avalanche
-            println!("Capacity reached, cannot add more grains");
+            // the location was perturbed, add the loose grains to the avalanche
+            return looseGrainIds;
         }
-        
-
-        
     }
-    fn purtubation(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
+
+    fn purtubation(&mut self, incomingGrain: u32, incomingGrainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
         // get the order of magnitude of a random power-law distribution
         // as random additional energy representing a purtubation of the location
         // add this value to the grains current energy
         let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
-        let tempSpeed = grain.energy + additionalEnergy as usize;
+        let tempSpeed = incomingGrainEnergy + additionalEnergy as usize;
 
         // determine if this purturbation will cause an avalanche
         if self.resilience < tempSpeed {
             // start an avalanche
             println!("Avalanche started at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
             // set the size of the avalanche
-            let mut baseAvalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+            let mut avalancheSize = 0;
+            avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
             
             // ensure that the base avalanche size is not larger than the number of grains
-            if self.grains.len() < baseAvalancheSize {
-                baseAvalancheSize = self.grains.len();
+            if self.grainIds.len() < avalancheSize {
+                avalancheSize = self.grainIds.len();
             }
 
             // add the perturbed grain to the avalanche
-            avalanche.addGrain(&self.grains.pop().unwrap());
+            //avalanche.addGrain();
 
-            println!("Avalanche size: {}", avalanche.grains.len());
+            println!("Avalanche size: {}", avalancheSize);
+            let mut looseGrainIds: Vec<u32> = Vec::new();
 
+            // return the grains that are part of the avalanche
+            for i in 0..avalancheSize {
+                looseGrainIds.push(self.grainIds.pop().unwrap());
+            }
+            return looseGrainIds;
+
+        } else {
+            Vec::new() // Return an empty vector
         }
     }
+
+    //fn grainImpact(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
+
+
+    //fn grainImpact(&mut self) {
+        // // first check the impact of the incoming grain on the location
+        // self.purtubation(grain, avalanche, rnd);
+
+        // // Check if the location has capacity to add a grain
+        // if self.grains.len() < self.capacity {
+        //     // the location is not full, add the grain
+        //     self.grains.push(grain);
+        // } else {
+        //     // if full, start an avalanche
+        //     println!("Capacity reached, cannot add more grains");
+        // }
+        
+    //}
+
+    // fn purtubation(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
+    //     // get the order of magnitude of a random power-law distribution
+    //     // as random additional energy representing a purtubation of the location
+    //     // add this value to the grains current energy
+    //     let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
+    //     let tempSpeed = grain.energy + additionalEnergy as usize;
+
+    //     // determine if this purturbation will cause an avalanche
+    //     if self.resilience < tempSpeed {
+    //         // start an avalanche
+    //         println!("Avalanche started at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
+    //         // set the size of the avalanche
+    //         let mut baseAvalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+            
+    //         // ensure that the base avalanche size is not larger than the number of grains
+    //         if self.grains.len() < baseAvalancheSize {
+    //             baseAvalancheSize = self.grains.len();
+    //         }
+
+    //         // add the perturbed grain to the avalanche
+    //         avalanche.addGrain(&self.grains.pop().unwrap());
+
+    //         println!("Avalanche size: {}", avalanche.grains.len());
+
+    //     }
+    // }
     pub fn getNumberOfGrains(&self) -> usize {
-        return self.grains.len();
+        return self.grainIds.len();
     }
 }
 
@@ -185,38 +270,42 @@ impl<'a> Location<'a> {
  * Model for an avalanche in the sandpile
  * An avalanche is a collection of grains that have been preturbed and are moving
  */
-struct Avalanche<'a> {
+struct Avalanche {
     id: u32,
     // Grains that are currently part of the avalanche
-    grains: Vec<&'a Grain>,
+    grainIds: Vec::<u32>,
     // Current locations being impacted by the avalanche
-    locations: Vec<&'a Location<'a>>,
+    locationIds: Vec::<u32>,
     
     // direction of the avalanche, determines which
     direction: usize,
 }
 
-impl<'a> Avalanche<'a> {
+impl Avalanche {
     pub fn new(id: u32) -> Self {
         Avalanche {
             id,
-            grains: Vec::new(),
-            locations: Vec::new(),
+            grainIds: Vec::<u32>::new(),
+            locationIds: Vec::<u32>::new(),
             direction: 0,
         }
     }
 
+    pub fn addGrain(&mut self, grainId: u32) {
+        self.grainIds.push(grainId);
+    }
+
     // Changed from &self to &mut self to allow modification
-    pub fn addGrain(&mut self, grain: &'a Grain) {
-        self.grains.push(grain);
-    }
-    pub fn getFullAvalancheEnergy(&self) -> usize {
-        let mut totalEnergy = 0;
-        for grain in &self.grains {
-            totalEnergy += grain.energy;
-        }
-        return totalEnergy;
-    }
+    // pub fn addGrain(&mut self, grain: &'a Grain) {
+    //     self.grains.push(grain);
+    // }
+    // pub fn getFullAvalancheEnergy(&self) -> usize {
+    //     let mut totalEnergy = 0;
+    //     for grain in &self.grains {
+    //         totalEnergy += grain.energy;
+    //     }
+    //     return totalEnergy;
+    // }
 }
 
 // struct Location {
@@ -272,7 +361,9 @@ fn main() {
     // initialize a vec of all avalanches
     let mut avalanches: Vec<Avalanche> = Vec::with_capacity(TOTAL_GRAINS);
 
-    // initialize all the avalanches in the array
+    // initialize all the avalanches in the array each grain causes an avalanche 
+    // of some size, might be as small as joining the first location it lands on
+    // or as big
     for i in 0..TOTAL_GRAINS {
         // create a grain 
         let mut avalanche = Avalanche::new(i as u32);
@@ -284,7 +375,8 @@ fn main() {
 
 
         // Start the avalanche for the this grains motion
-        avalanches[i].addGrain(&grains[i]);
+        avalanches[i].addGrain(grains[i].id);
+        
 
         // start with center of the array
         let mut x = X_SIZE / 2 - 1;
@@ -324,7 +416,7 @@ fn main() {
 
         // see if the array location is not at capacity and fall until it is not
         if DEBUG && DEBUG_FALLING_GRAIN { println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z) };
-        while array[x][y][z].grains.len() < array[x][y][z].capacity && z > 0 {
+        while array[x][y][z].grainIds.len() < array[x][y][z].capacity && z > 0 {
             z -= 1;
             // increase the energy of the grain up to terminal velocity
             if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
@@ -335,7 +427,8 @@ fn main() {
         if DEBUG && DEBUG_FALLING_GRAIN { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
 
         // add the grain to the location
-        array[x][y][z].grainImpact(&grains[i], &mut avalanches[i], &mut rnd);
+        array[x][y][z].grainImpact(grains[i].id, grains[i].energy, &mut rnd);
+        
 
         if DEBUG && DEBUG_FALLING_GRAIN { println!("array at location x: {}, y: {}, z: {} has grains {}", x, y, z, array[x][y][z].getNumberOfGrains()); }
 
@@ -403,4 +496,29 @@ pub fn normalizedPowerLawByOrdersOfMagnitudeWithAlpha(alphaOverride: f64, rnd: &
     let orderOfMagnitude = value.log10().floor();
     return orderOfMagnitude;
     
+}
+
+fn num_bits_needed(max_value: usize) -> usize {
+    // Compute the number of bits required to store max_value
+    // This calculates the floor of the logarithm base 2 of max_value and adds 1
+    (max_value as f64).log2().ceil() as usize
+}
+
+/**
+ * Generate a unique id based on the x, y, z coordinates
+ */
+fn generateXyzId(x: usize, y: usize, z: usize) -> usize {
+    let max_x_index = X_SIZE - 1;
+    let max_y_index = Y_SIZE - 1;
+    let max_z_index = Z_SIZE - 1;
+
+    // Determine the number of bits needed for each dimension
+    let x_bits = num_bits_needed(max_x_index);
+    let y_bits = num_bits_needed(max_y_index);
+    let z_bits = num_bits_needed(max_z_index);
+
+    // Encode x, y, z into a single usize using bit shifts
+    // We shift x by the sum of the bits required for y and z
+    // and shift y by the bits required for z
+    (x << (y_bits + z_bits)) | (y << z_bits) | z
 }
