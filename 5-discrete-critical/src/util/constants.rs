@@ -2,16 +2,16 @@
  * Master Debug flag
  */
 pub const DEBUG: bool = true;
-pub const DEBUG_INIT: bool = true;
+pub const DEBUG_INIT: bool = false;
 pub const DEBUG_AVALANCHE: bool = false;
-pub const DEBUG_LOCATION: bool = true;
-
-// total grains to drop
-pub const TOTAL_GRAINS: usize = 10;
+pub const DEBUG_LOCATION: bool = false;
+pub const DEBUG_DISPLAY_PILE: bool = true;
+pub const DEBUG_LOCAL_NEIGHBORS: bool = true;
 
 // minimum value (multiplier) for the power-law distribution
 // can be used to set a lower bound.
 pub const X_MIN: f64 = 1.0;
+
 // Power-law distribution parameters
 pub const ALPHA_MAIN: f64 = 2.0;
 pub const ALPHA_LANDING: f64 = 1.4;
@@ -27,3 +27,4 @@ pub const Z_SIZE: usize = 2;
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
+pub const TOTAL_GRAINS: usize = 20;

@@ -6,17 +6,19 @@ use std::vec::Vec;
 // internal modules
 use crate::util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitude;
 use crate::util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
-use crate::util::sandpileUtil::generateXyzId;
 
 // Constants
 use crate::util::constants::DEBUG;
 use crate::util::constants::DEBUG_AVALANCHE;
 use crate::util::constants::DEBUG_LOCATION;
+use crate::util::constants::DEBUG_LOCAL_NEIGHBORS;
 use crate::util::constants::BASE_CAPACITY;
 use crate::util::constants::BASE_RESILIENCE;
 use crate::util::constants::ALPHA_EXTRA_ENERGY;
 use crate::util::constants::ALPHA_AVALANCHE_SIZE;
-
+use crate::util::constants::X_SIZE;
+use crate::util::constants::Y_SIZE;
+use crate::util::constants::Z_SIZE;
 
 
 
@@ -37,9 +39,7 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn new(x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
-        let id = generateXyzId(x as usize, y as usize, z as usize);
-        if DEBUG && DEBUG_LOCATION { println!("Creating location x: {}, y: {}, z: {} has Id {}", x, y, z, id); }
+    pub fn new(id: usize, x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
 
         // get the order of magnitude of a random power-law distribution
         let additionalCap = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
@@ -54,9 +54,7 @@ impl Location {
             resilience: BASE_RESILIENCE + additionalRes,  
         }
     }
-    pub fn emptySpace(x: i32, y: i32, z: i32) -> Self {
-        let id = generateXyzId(x as usize, y as usize, z as usize);
-        if DEBUG && DEBUG_LOCATION { println!("Creating empty location x: {}, y: {}, z: {} has Id {}", x, y, z, id); }
+    pub fn emptySpace(id: usize, x: i32, y: i32, z: i32) -> Self {
 
         Location {
             id,
@@ -122,7 +120,7 @@ impl Location {
 
         if self.resilience < tempSpeed {
             // start an avalanche
-            println!("Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len());
+            if DEBUG && DEBUG_AVALANCHE { println!("Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
             // set the size of the avalanche
             let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
             
@@ -148,11 +146,7 @@ impl Location {
         }
     }
 
-    pub fn getLowerNeighborhood(&self) -> Vec<&Location> {
-        let lowerNeighborhood: Vec<&Location> = Vec::new();
-        
-        return lowerNeighborhood;
-    }
+    
 
     //fn grainImpact(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
 
