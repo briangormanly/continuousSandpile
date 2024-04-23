@@ -107,13 +107,17 @@ fn main() {
         // see if the array location is not at capacity and fall until it is not
         if DEBUG && DEBUG_AVALANCHE { println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z) };
 
-        
-
         // fird the lower neighborhood for this location
         //let lowerNeighborhood: Vec<&Location> = Vec::new();
-        let lowerNeighborhood = getLowerNeighborhood(&mut array, x, y, z);
+        let lowerNeighborhood = Location::getLowerNeighborhood(&mut array, x, y, z);
 
-
+        // print out all the locations in the lower neighborhood
+        if DEBUG && DEBUG_LOCAL_NEIGHBORS { 
+            println!("Lower neighborhood for x: {}, y: {}, z: {}", x, y, z);
+            for location in lowerNeighborhood {
+                println!("Location x: {}, y: {}, z: {} can fit {} more grains", location.x, location.y, location.z, location.capacity - location.grainIds.len(),);
+            }
+         }
 
         if DEBUG && DEBUG_AVALANCHE { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
 
@@ -246,52 +250,4 @@ fn initialGrainPosition( i: usize, array: &mut Vec<Vec<Vec<Location>>>, grains: 
     
     // return the location
     (x, y, z)
-}
-
-fn getLowerNeighborhood(array: &mut Vec<Vec<Vec<Location>>>, x: usize, y: usize, z: usize) -> Vec<&Location> {
-    let mut lowerNeighborhood: Vec<&Location> = Vec::with_capacity(9);
-
-    if z > 0 {
-        // add the locations in the neighborhood at z-1
-        // to the lowerNeighborhood
-
-
-        let minX = if x == 0 { 0 } else { x-1 };
-        let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE };
-        let minY = if y == 0 { 0 } else { y-1 };
-        let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE };
-        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
-
-        // keep track of how many locations are not at capacity in the lower neighborhood
-        let mut belowNumberOpen = 0;
-
-        // iterate for each level below the current level
-        for i in minX..maxX + 1 {
-            for j in minY..maxY + 1 {
-                
-                // check to see is the spot is in bounds
-                if i >= X_SIZE || j >= Y_SIZE {
-                    if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
-                    // add an out of bounds spot to the belowSlice array
-                    //belowSlice[belowNumberOpen] = (i, j);
-                    //belowNumberOpen += 1;
-
-                    //continue;
-                }
-                else if array[i as usize][j as usize][(z-1) as usize].grainIds.len() < array[i as usize][j as usize][(z-1) as usize].capacity {
-                    if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1); }
-                    println!("len: lowerNeighborhood: {} array length: {}, {}, {}", lowerNeighborhood.len(), array.len(), array[0].len(), array[0][0].len());
-                    lowerNeighborhood.push(&array[i as usize][j as usize][(z-1) as usize]);
-                    belowNumberOpen += 1;
-                }
-            }
-        }
-
-        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Below number open: {}", belowNumberOpen); }
-        //if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Below slice: {:?}", lowerNeighborhood); }
-    }
-
-    
-    
-    return lowerNeighborhood;
 }

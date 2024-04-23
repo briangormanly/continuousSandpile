@@ -27,4 +27,4 @@ pub const Z_SIZE: usize = 2;
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
-pub const TOTAL_GRAINS: usize = 20;
+pub const TOTAL_GRAINS: usize = 40;
