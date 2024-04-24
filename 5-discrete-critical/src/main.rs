@@ -39,7 +39,6 @@ use models::location::Location;
 use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
 
 
-
 // Constants
 use util::constants::ALPHA_LANDING;
 use util::constants::DEBUG;
@@ -47,13 +46,13 @@ use util::constants::DEBUG_AVALANCHE;
 use util::constants::DEBUG_INIT;
 use util::constants::DEBUG_DISPLAY_PILE;
 use util::constants::DEBUG_LOCAL_NEIGHBORS;
-use util::constants::TOTAL_GRAINS;
 use util::constants::X_SIZE;
 use util::constants::Y_SIZE;
 use util::constants::Z_SIZE;
 use util::constants::TERMINAL_FREE_FALL_SPEED;
 use util::constants::BASE_RESILIENCE;
 use util::constants::BASE_CAPACITY;
+use util::constants::TOTAL_GRAINS;
 
 
 
@@ -66,14 +65,12 @@ fn main() {
     
 
     // initialize a vec of all grains
-    let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
+    //let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
+    models::grain::Grain::initializeGrains();
+
 
     // initialize all the grains in the array
-    initializeGrains(&mut grains, &mut rnd);
-
-    if DEBUG && DEBUG_INIT {
-        println!("---------------- Grains created with count: {} ----------------", grains.len());
-    }
+    //initializeGrains(&mut grains, &mut rnd);
 
     // initialize a vec of all avalanches
     let mut avalanches: Vec<Avalanche> = Vec::with_capacity(TOTAL_GRAINS);
@@ -96,21 +93,35 @@ fn main() {
     // 
     for i in 0..TOTAL_GRAINS {
 
-        // Start the avalanche for the this grains motion
-        avalanches[i].addGrain(grains[i].id);
+        // Add the new falling grain to the avalanche, this is grain 0
+        avalanches[i].addGrain(i as u32);
 
         if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE {} START ------------", i); }
+
+        // print out all of the states of the grains in the avalanche
+        for grainId in &avalanches[i].grainIds {
+            let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
+            println!("Grain {} is in state {:?}", grain.id, grain.state);
+        }
 
         // update the avalanche while there are grains in the avalanche
         //while avalanches[i].grainIds.len() > 0 {
             // loop through all the grains in the avalanche
             for j in 0..avalanches[i].grainIds.len() {
                 let grainId = avalanches[i].grainIds[j];
-                avalanches[i].update( &mut grains[grainId as usize]);
+                avalanches[i].update( grainId );
             }
 
             
         //}
+
+        // print out all of the states of the grains in the avalanche
+        for grainId in &avalanches[i].grainIds {
+            let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
+            println!("Grain {} is in state {:?}", grain.id, grain.state);
+            // print each grains location
+            println!("Grain {} is at location x {}, y {}, z {}", grain.id, grain.x, grain.y, grain.z);
+        }
 
 
         if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE {} END ------------\n", i) }
@@ -166,8 +177,6 @@ fn main() {
             
         //     if DEBUG && DEBUG_AVALANCHE { println!("----Capacity End---- Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
 
-            
-            
         // }
 
         
@@ -204,18 +213,7 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
 
 
 
-fn initializeGrains(grains: &mut Vec<Grain>, rnd: &mut impl Rng ) {
-    
 
-    // initialize all the grains in the array
-    for i in 0..TOTAL_GRAINS {
-        // create a grain 
-        let mut grain = Grain::new(i as u32);
-        // set the grain in motion
-       
-        grains.push(grain);
-    }
-}
 
 // fn initialGrainPosition( i: usize, array: &mut Vec<Vec<Vec<Location>>>, grains: &mut Vec<Grain>, rnd: &mut impl Rng ) -> (usize, usize, usize) {
 //     // start with center of the array

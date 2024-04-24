@@ -1,6 +1,7 @@
 use crate::models::grain::Grain;
 use crate::models::grain::GrainState;
 
+
 /**
  * Model for an avalanche in the sandpile
  * An avalanche is a collection of grains that have been preturbed and are moving
@@ -31,12 +32,18 @@ impl Avalanche {
     }
 
     // update the movement of all the grains currently in the avalanche
-    pub fn update(&mut self, grain: &mut Grain) {
+    pub fn update( &mut self, grainId: u32 ) {
         for grainId in &self.grainIds {
+            // get the grain from the grain list
+            let mut grain = crate::models::grain::Grain::getGrainById(*grainId).unwrap();
+
+            // TODO: get the grain from Grain.GRAINS
+
             println!("Updating grain {}", grainId);
             if grain.state == GrainState::Unknown {
                 grain.state = GrainState::Falling;
                 grain.fall();
+                grain.saveGrain();
             }
             else if grain.state == GrainState::Falling {
                 // do nothing
@@ -49,6 +56,29 @@ impl Avalanche {
             }
             
         }
+    }
+
+    fn grainFall(&mut self, grain: &mut Grain) {
+
+
+        // // fall until the grain lands on a location that is not at capacity
+        // // fall through any locations that are empty (resilience == 0)
+        // // if not at z=0, check the location below to see if it has capacity
+        // while array[x][y][z].resilience == 0 || ( z > 0 && array[x][y][z-1].grainIds.len() < array[x][y][z-1].capacity ) {
+        //     z -= 1;
+        //     // increase the energy of the grain up to terminal velocity
+        //     if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
+        //         //grains[i].incrementEnergy();
+        //     }
+        // }
+
+        // while grain.energy == 0 {
+        //     grain.z -= 1;
+        //     // increase the energy of the grain up to terminal velocity
+        //     // if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
+        //     //     //grains[i].incrementEnergy();
+        //     // }
+        // }
     }
 
     // Changed from &self to &mut self to allow modification

@@ -31,7 +31,8 @@ use crate::util::constants::Z_SIZE;
  * Static HashMap to store all the locations in the sandpile
  */
 lazy_static! { // Require the lazy_static crate to handle static Mutex
-    static ref LOCATIONS: Mutex<HashMap<u32, Location>> = Mutex::new(HashMap::new());
+    // create a static mutex HashMap to store all the locations, use the location coordinates as the key for constant time access
+    static ref LOCATIONS: Mutex<HashMap<(i32, i32, i32), Location>> = Mutex::new(HashMap::new());
 }
 
 
@@ -84,15 +85,29 @@ impl Location {
     /**
      * retrieve a location by its id from the static HashMap
      */
-    pub fn getLocationById(id: u32) -> Option<Location> {
-        let locations = LOCATIONS.lock().unwrap();
-        locations.get(&id).cloned()
+
+    // Modify addLocation to use coordinates as the key
+    fn addLocation(location: Location) {
+        let mut locations = LOCATIONS.lock().unwrap();
+        locations.insert((location.x, location.y, location.z), location);
     }
 
-    fn add_location(location: Location) {
-        let mut locations = LOCATIONS.lock().unwrap();
-        locations.insert(location.id, location);
+    // Add getLocationByLocation to retrieve a location by coordinates
+    pub fn getLocationByLocation(x: i32, y: i32, z: i32) -> Option<Location> {
+        let locations = LOCATIONS.lock().unwrap();
+        locations.get(&(x, y, z)).cloned()
     }
+
+
+    // pub fn getLocationById(id: u32) -> Option<Location> {
+    //     let locations = LOCATIONS.lock().unwrap();
+    //     return locations.get(&id).cloned()
+    // }
+
+    // fn addLocation(location: Location) {
+    //     let mut locations = LOCATIONS.lock().unwrap();
+    //     locations.insert(location.id, location);
+    // }
 
     pub fn initializeLocations(rnd: &mut impl Rng) {
         let mut count = 0;
@@ -106,7 +121,7 @@ impl Location {
                         Location::emptySpace(count as u32, x as i32, y as i32, z as i32)
                     };
 
-                    Location::add_location(location); // Add location to the HashMap
+                    Location::addLocation(location); // Add location to the HashMap
                     count += 1;
                     
                     // // create a location

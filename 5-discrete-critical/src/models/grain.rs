@@ -1,15 +1,22 @@
 // external modules
 extern crate rand;
 use rand::Rng;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use lazy_static::lazy_static;
 
 // constants
 use crate::util::constants::{ALPHA_LANDING, X_SIZE, Y_SIZE, Z_SIZE};
-use crate::util::constants::{DEBUG, DEBUG_LOCATION};
+use crate::util::constants::{DEBUG, DEBUG_LOCATION, DEBUG_INIT};
+use crate::util::constants::{TOTAL_GRAINS};
+
 
 // internal utilities
 use crate::util::sandpileUtil::{normalizedPowerLawByOrdersOfMagnitudeWithAlpha};
 
 #[derive(PartialEq)]
+#[derive(Clone)]
+#[derive(Debug)]
 pub enum GrainState {
     Unknown,
     Falling,
@@ -17,6 +24,15 @@ pub enum GrainState {
     Avalanche,
 }
 
+lazy_static! { // Require the lazy_static crate to handle static Mutex
+    // HashMap for grains indexed by coordinates (x, y, z)
+    static ref GRAINS_BY_LOCATION: Mutex<HashMap<(i32, i32, i32), Vec<Grain>>> = Mutex::new(HashMap::new());
+    
+    // HashMap for grains indexed by ID
+    static ref GRAINS_BY_ID: Mutex<HashMap<u32, Grain>> = Mutex::new(HashMap::new());
+}
+
+#[derive(Clone)]
 pub struct Grain {
     pub id: u32,
     pub x: i32,
@@ -51,8 +67,54 @@ impl Grain {
             state: GrainState::Unknown,        
         }
     }
-    
+
+    pub fn initializeGrains() {
+         // initialize all the grains in the array
+        for i in 0..TOTAL_GRAINS {
+            // create a grain 
+            let grain = Grain::new(i as u32);
+
+            Grain::addGrain(grain);
+
+        }
+        if DEBUG && DEBUG_INIT {
+            let grains = GRAINS_BY_ID.lock().unwrap();
+            let length = grains.len();
+            println!("---------------- Grains created with count: {} ----------------", grains.len());
+        }
+    }
+
+    // Method to retrieve grains by location
+    pub fn getGrainsByLocation(x: i32, y: i32, z: i32) -> Vec<Grain> {
+        let grains = GRAINS_BY_LOCATION.lock().unwrap();
+        grains.get(&(x, y, z)).cloned().unwrap_or_else(Vec::new)
+    }
+
+    // Method to retrieve a grain by ID
+    pub fn getGrainById(id: u32) -> Option<Grain> {
+        let grains = GRAINS_BY_ID.lock().unwrap();
+        grains.get(&id).cloned()
+    }
+
+    /**
+     * Save the grain to the system
+     * Handles adding the grain to the grains_by_location and grains_by_id HashMaps
+     */
+    pub fn saveGrain(&mut self) {
+        let mut grains_by_location = GRAINS_BY_LOCATION.lock().unwrap();
+        let mut grains_by_id = GRAINS_BY_ID.lock().unwrap();
+
+        let location_key = (self.x, self.y, self.z);
+        grains_by_location.entry(location_key).or_insert_with(Vec::new).push(self.clone());
+
+        grains_by_id.insert(self.id, self.clone());
+        
+    }
+
     pub fn fall(&mut self) {
+
+
+
         // fall until the grain lands on a location that is not at capacity
         // fall through any locations that are empty (resilience == 0)
         // if not at z=0, check the location below to see if it has capacity
@@ -69,8 +131,23 @@ impl Grain {
 
 
 
-        
     }
+
+    /**
+     * Add a grain to the system
+     * Handles adding the grain to the grains_by_location and grains_by_id HashMaps
+     */
+    fn addGrain(grain: Grain) {
+        let mut grains_by_location = GRAINS_BY_LOCATION.lock().unwrap();
+        let mut grains_by_id = GRAINS_BY_ID.lock().unwrap();
+
+        let location_key = (grain.x, grain.y, grain.z);
+        grains_by_location.entry(location_key).or_insert_with(Vec::new).push(grain.clone());
+
+        grains_by_id.insert(grain.id, grain);
+    }
+    
+    
 
 
     /**
