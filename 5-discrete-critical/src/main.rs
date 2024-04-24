@@ -61,15 +61,7 @@ fn main() {
     // create a random number generator
     let mut rnd = rand::thread_rng();
 
-    // initialize the location model
-    //let location = models::location::Location::new(/* parameters */);
-
-
-    // Create a 3D vector of locations
-    //let mut locations: Vec<Vec<Vec<Location>>> = Vec::with_capacity(X_SIZE);
-
-    // cerate locations for all the points in the array within the slope of criticality
-    //location.initializeLocations(&mut rnd);
+    // initialize the locations as a static mutex hashmap
     models::location::Location::initializeLocations(&mut rnd);
     
 
