@@ -99,33 +99,71 @@ fn main() {
         // Start the avalanche for the this grains motion
         avalanches[i].addGrain(grains[i].id);
 
-        if DEBUG && DEBUG_AVALANCHE { println!("Grain {} is falling", i); }
+        if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE START ------------\n Grain {} is falling", i); }
 
         // determine initial x, y, z location
-        let (x, y, z) = initialGrainPosition(i, &mut array, &mut grains, &mut rnd);
+        let (mut x, mut y, mut z) = initialGrainPosition(i, &mut array, &mut grains, &mut rnd);
 
         // see if the array location is not at capacity and fall until it is not
         if DEBUG && DEBUG_AVALANCHE { println!("Grain {} started at x: {}, y: {}, z: {}", i, x, y, z) };
 
-        // fird the lower neighborhood for this location
-        //let lowerNeighborhood: Vec<&Location> = Vec::new();
-        let lowerNeighborhood = Location::getLowerNeighborhood(&mut array, x, y, z);
+        // determine if the initial grain position is at capacity
+        if array[x][y][z].grainIds.len() >= array[x][y][z].capacity {
+            if DEBUG && DEBUG_AVALANCHE { println!("----Capacity Start---- Grain {} landed at x: {}, y: {}, z: {} is at capacity", i, x, y, z); }
 
-        // print out all the locations in the lower neighborhood
-        if DEBUG && DEBUG_LOCAL_NEIGHBORS { 
-            println!("Lower neighborhood for x: {}, y: {}, z: {}", x, y, z);
-            for location in lowerNeighborhood {
-                println!("Location x: {}, y: {}, z: {} can fit {} more grains", location.x, location.y, location.z, location.capacity - location.grainIds.len(),);
+            // fird the lower neighborhood for this location
+            //let lowerNeighborhood: Vec<&Location> = Vec::new();
+            let lowerNeighborhood = Location::getLowerNeighborhood(&mut array, x, y, z);
+
+            // for the grain to want to fall at least one of the lower neighborhood locations must have capacity.
+            // if none of the lower neighborhood locations have capacity, the grain sit 1 z level higher
+            let mut canFall = false;
+            for location in &lowerNeighborhood {
+                if location.capacity - location.grainIds.len() > 0 {
+                    canFall = true;
+                }
             }
-         }
 
-        if DEBUG && DEBUG_AVALANCHE { println!("Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
+            if !canFall {
+                z += 1;
+                println!("----Capacity Cannot Fall ---- Grain {} moved up to z {}", i, z);
 
-        // add the grain to the location
-        array[x][y][z].grainImpact(grains[i].id, grains[i].energy, &mut rnd);
+            }
+            else {
+                // pick a location at random from the lower neighborhood and fall to it.
+                let mut locationIndex = rnd.gen_range(0..lowerNeighborhood.len());
+                x = lowerNeighborhood[locationIndex].x as usize;
+                y = lowerNeighborhood[locationIndex].y as usize;
+                z = lowerNeighborhood[locationIndex].z as usize;
+                grains[i].incrementEnergy();
+
+                println!("----Capacity Can Fall ---- Grain {} moved to x: {}, y: {}, z: {}", i, x, y, z);
+            }
+
+            // print out all the locations in the lower neighborhood
+            // if DEBUG && DEBUG_LOCAL_NEIGHBORS { 
+            //     println!("Lower neighborhood for x: {}, y: {}, z: {}", x, y, z);
+            //     for location in lowerNeighborhood {
+            //         println!("Location x: {}, y: {}, z: {} can fit {} more grains", location.x, location.y, location.z, location.capacity - location.grainIds.len(),);
+            //     }
+            // }
+
+            
+            if DEBUG && DEBUG_AVALANCHE { println!("----Capacity End---- Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
+
+            
+            
+        }
+
         
 
-        if DEBUG && DEBUG_AVALANCHE { println!("array at location x: {}, y: {}, z: {} has grains {}", x, y, z, array[x][y][z].getNumberOfGrains()); }
+
+        // add the grain to the location
+        let looseGrains = array[x][y][z].grainImpact(grains[i].id, grains[i].energy, &mut rnd);
+        
+
+        if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE END ------------ array at location x: {}, y: {}, z: {} has grains {}\n", x, y, z, array[x][y][z].getNumberOfGrains()); }
+
 
     }
 

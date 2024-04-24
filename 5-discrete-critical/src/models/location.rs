@@ -12,6 +12,7 @@ use crate::util::constants::DEBUG;
 use crate::util::constants::DEBUG_AVALANCHE;
 use crate::util::constants::DEBUG_LOCATION;
 use crate::util::constants::DEBUG_LOCAL_NEIGHBORS;
+use crate::util::constants::DEBUG_GRAIN_IMPACT;
 use crate::util::constants::BASE_CAPACITY;
 use crate::util::constants::BASE_RESILIENCE;
 use crate::util::constants::ALPHA_EXTRA_ENERGY;
@@ -85,8 +86,10 @@ impl Location {
 
     pub fn grainImpact(&mut self, grainId: u32, grainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
 
+        println!("-------- GRAIN IMPACT START ---------\nGrain impact at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
         // first check the impact of the incoming grain on the location
         let looseGrainIds = self.purtubation(grainId, grainEnergy, rnd);
+        println!(" purtubation produced looseGrainIds: {:?}", looseGrainIds);
 
         // check to see if the location was perturbed
         if looseGrainIds.len() == 0 {
@@ -118,9 +121,9 @@ impl Location {
             println!("resilience {} < total energy: {} for location {}, {}, {}", self.resilience, tempSpeed, self.x, self.y, self.z); 
         }
 
-        if self.resilience < tempSpeed {
+        if self.resilience < tempSpeed && self.z > 0 {
             // start an avalanche
-            if DEBUG && DEBUG_AVALANCHE { println!("Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
+            if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
             // set the size of the avalanche
             let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
             
@@ -132,7 +135,7 @@ impl Location {
             // add the perturbed grain to the avalanche
             //avalanche.addGrain();
 
-            println!("Avalanche size: {}", avalancheSize);
+            if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche size: {}", avalancheSize) };
             let mut looseGrainIds: Vec<u32> = Vec::new();
 
             // return the grains that are part of the avalanche
