@@ -21,13 +21,6 @@
 
 */
 
-// external structs and functions
-use models::avalanche::Avalanche;
-use models::grain::Grain;
-use models::location::Location;
-use util::sandpileUtil::drawPile;
-use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
-
 // external modules
 extern crate rand;
 use rand::Rng;
@@ -36,6 +29,16 @@ use std::vec::Vec;
 // internal modules
 pub mod models;
 pub mod util;
+
+// external structs and functions
+use models::avalanche::Avalanche;
+use models::grain::Grain;
+use models::location::Location;
+
+//use util::sandpileUtil::drawPile;
+use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
+
+
 
 // Constants
 use util::constants::ALPHA_LANDING;
@@ -58,15 +61,17 @@ fn main() {
     // create a random number generator
     let mut rnd = rand::thread_rng();
 
+    // initialize the location model
+    //let location = models::location::Location::new(/* parameters */);
+
+
     // Create a 3D vector of locations
-    let mut locations: Vec<Vec<Vec<Location>>> = Vec::with_capacity(X_SIZE);
+    //let mut locations: Vec<Vec<Vec<Location>>> = Vec::with_capacity(X_SIZE);
 
     // cerate locations for all the points in the array within the slope of criticality
-    initializeLocations(&mut locations, &mut rnd);
-
-    if DEBUG && DEBUG_INIT {
-        println!("---------------- Array of locations created with x: {}, y: {}, z: {} ----------------", locations.len(), locations[0].len(), locations[0][0].len());
-    }
+    //location.initializeLocations(&mut rnd);
+    models::location::Location::initializeLocations(&mut rnd);
+    
 
     // initialize a vec of all grains
     let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
@@ -185,9 +190,9 @@ fn main() {
     }
 
     // draw the pile
-    if DEBUG && DEBUG_DISPLAY_PILE {
-        drawPile(&locations);
-    }
+    // if DEBUG && DEBUG_DISPLAY_PILE {
+    //     drawPile(&locations);
+    // }
     
 
     // createa Location
@@ -204,39 +209,7 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
     }
 }
 
-fn initializeLocations(locations: &mut Vec<Vec<Vec<Location>>>, rnd: &mut impl Rng) {
-    let mut count = 0;
-    for x in 0..X_SIZE {
-        let mut layer_y: Vec<Vec<Location>> = Vec::with_capacity(Y_SIZE);
-        for y in 0..Y_SIZE {
-            let mut column_z: Vec<Location> = Vec::with_capacity(Z_SIZE);
-            for z in 0..Z_SIZE {
-                
-                // create a location
-                if x>=z && x<=X_SIZE-z-1 && y>=z && y<=Y_SIZE-z-1 {
-                    // create a location
-                    let location = Location::new(count as u32, x as i32, y as i32, z as i32, rnd);
-                    if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
-                    
-                    // add the location to the array
-                    column_z.push(location);
-                }
-                else {
-                    // empty 
-                    let location = Location::emptySpace(count as u32, x as i32, y as i32, z as i32);
-                    if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
 
-                    column_z.push(location);
-                    //println!("!!!Location outside of critical slope x: {}, y: {}, z: {}", x, y, z);
-                }
-                count += 1;
-            }
-            layer_y.push(column_z);
-            
-        }
-        locations.push(layer_y);
-    }
-}
 
 
 fn initializeGrains(grains: &mut Vec<Grain>, rnd: &mut impl Rng ) {

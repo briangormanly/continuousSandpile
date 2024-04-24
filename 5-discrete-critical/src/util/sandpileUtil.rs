@@ -16,27 +16,27 @@ use crate::util::constants::{ALPHA_MAIN, ALPHA_AVALANCHE_SIZE, X_SIZE, Y_SIZE, Z
 /**
  * 
  */
-pub fn drawPile(array: &Vec<Vec<Vec<Location>>>) {
-    println!("Drawing the pile");
-    let mut grandTotal = 0;
-    for z in (0..Z_SIZE).rev() {
+// pub fn drawPile(array: &Vec<Vec<Vec<Location>>>) {
+//     println!("Drawing the pile");
+//     let mut grandTotal = 0;
+//     for z in (0..Z_SIZE).rev() {
 
-        for y in 0..Y_SIZE {
+//         for y in 0..Y_SIZE {
 
-            print!("\n");
+//             print!("\n");
 
-            for x in 0..X_SIZE {
-                //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
-                print!("{}", array[x][y][z].getNumberOfGrains());
-                grandTotal += array[x][y][z].getNumberOfGrains();
-            }
+//             for x in 0..X_SIZE {
+//                 //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
+//                 print!("{}", array[x][y][z].getNumberOfGrains());
+//                 grandTotal += array[x][y][z].getNumberOfGrains();
+//             }
             
-        }
-        println!("\n");
-    }
-    println!(" ");
-    println!("Total grains in the pile: {}", grandTotal);
-}
+//         }
+//         println!("\n");
+//     }
+//     println!(" ");
+//     println!("Total grains in the pile: {}", grandTotal);
+// }
 
 
 /**

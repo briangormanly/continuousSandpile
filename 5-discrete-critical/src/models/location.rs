@@ -2,6 +2,9 @@
 extern crate rand;
 use rand::Rng;
 use std::vec::Vec;
+use std::collections::HashMap;
+use std::sync::Mutex;
+use lazy_static::lazy_static;
 
 // internal modules
 use crate::util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitude;
@@ -13,6 +16,8 @@ use crate::util::constants::DEBUG_AVALANCHE;
 use crate::util::constants::DEBUG_LOCATION;
 use crate::util::constants::DEBUG_LOCAL_NEIGHBORS;
 use crate::util::constants::DEBUG_GRAIN_IMPACT;
+use crate::util::constants::DEBUG_DISPLAY_PILE;
+use crate::util::constants::DEBUG_INIT;
 use crate::util::constants::BASE_CAPACITY;
 use crate::util::constants::BASE_RESILIENCE;
 use crate::util::constants::ALPHA_EXTRA_ENERGY;
@@ -22,6 +27,13 @@ use crate::util::constants::Y_SIZE;
 use crate::util::constants::Z_SIZE;
 
 
+/**
+ * Static HashMap to store all the locations in the sandpile
+ */
+lazy_static! { // Require the lazy_static crate to handle static Mutex
+    static ref LOCATIONS: Mutex<HashMap<u32, Location>> = Mutex::new(HashMap::new());
+}
+
 
 /**
  * Model for a location in the sandpile
@@ -29,6 +41,7 @@ use crate::util::constants::Z_SIZE;
  * They have a capacity for grains and a resilience to purturbations which is 
  * determined as a random value between 1 and 6
  */
+#[derive(Clone)]
 pub struct Location {
     pub id: u32,
     pub x: i32,
@@ -68,6 +81,65 @@ impl Location {
         }
     }
 
+    /**
+     * retrieve a location by its id from the static HashMap
+     */
+    pub fn getLocationById(id: u32) -> Option<Location> {
+        let locations = LOCATIONS.lock().unwrap();
+        locations.get(&id).cloned()
+    }
+
+    fn add_location(location: Location) {
+        let mut locations = LOCATIONS.lock().unwrap();
+        locations.insert(location.id, location);
+    }
+
+    pub fn initializeLocations(rnd: &mut impl Rng) {
+        let mut count = 0;
+        for x in 0..X_SIZE {
+            for y in 0..Y_SIZE {
+                for z in 0..Z_SIZE {
+
+                    let location = if x>=z && x<=X_SIZE-z-1 && y>=z && y<=Y_SIZE-z-1 {
+                        Location::new(count as u32, x as i32, y as i32, z as i32, rnd)
+                    } else {
+                        Location::emptySpace(count as u32, x as i32, y as i32, z as i32)
+                    };
+
+                    Location::add_location(location); // Add location to the HashMap
+                    count += 1;
+                    
+                    // // create a location
+                    // if x>=z && x<=X_SIZE-z-1 && y>=z && y<=Y_SIZE-z-1 {
+                    //     // create a location
+                    //     let location = Location::new(count as u32, x as i32, y as i32, z as i32, rnd);
+                    //     if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
+                        
+                    //     // add the location to the array
+                    //     column_z.push(location);
+                    // }
+                    // else {
+                    //     // empty 
+                    //     let location = Location::emptySpace(count as u32, x as i32, y as i32, z as i32);
+                    //     if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
+    
+                    //     column_z.push(location);
+                    //     //println!("!!!Location outside of critical slope x: {}, y: {}, z: {}", x, y, z);
+                    // }
+                    // count += 1;
+                }
+                //layer_y.push(column_z);
+                
+            }
+            //locations.push(layer_y);
+        }
+
+        if DEBUG && DEBUG_INIT {
+            let locations = LOCATIONS.lock().unwrap();
+            let length = locations.len();
+            println!("---------------- Array of locations created with length: {} ----------------", length);
+        }
+    }
 
     // call purtubation
     // both require:
