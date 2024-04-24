@@ -4,10 +4,11 @@
 pub const DEBUG: bool = true;
 pub const DEBUG_INIT: bool = false;
 pub const DEBUG_AVALANCHE: bool = true;
-pub const DEBUG_LOCATION: bool = false;
-pub const DEBUG_DISPLAY_PILE: bool = true;
+pub const DEBUG_LOCATION: bool = true;
 pub const DEBUG_LOCAL_NEIGHBORS: bool = false;
-pub const DEBUG_GRAIN_IMPACT: bool = true;
+pub const DEBUG_GRAIN_IMPACT: bool = false;
+
+pub const DEBUG_DISPLAY_PILE: bool = false;
 
 // minimum value (multiplier) for the power-law distribution
 // can be used to set a lower bound.

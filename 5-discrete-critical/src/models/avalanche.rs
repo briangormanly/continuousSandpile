@@ -1,3 +1,6 @@
+use crate::models::grain::Grain;
+use crate::models::grain::GrainState;
+
 /**
  * Model for an avalanche in the sandpile
  * An avalanche is a collection of grains that have been preturbed and are moving
@@ -25,6 +28,27 @@ impl Avalanche {
 
     pub fn addGrain(&mut self, grainId: u32) {
         self.grainIds.push(grainId);
+    }
+
+    // update the movement of all the grains currently in the avalanche
+    pub fn update(&mut self, grain: &mut Grain) {
+        for grainId in &self.grainIds {
+            println!("Updating grain {}", grainId);
+            if grain.state == GrainState::Unknown {
+                grain.state = GrainState::Falling;
+                grain.fall();
+            }
+            else if grain.state == GrainState::Falling {
+                // do nothing
+            }
+            else if grain.state == GrainState::Resting {
+                // do nothing
+            }
+            else if grain.state == GrainState::Avalanche {
+                // do nothing
+            }
+            
+        }
     }
 
     // Changed from &self to &mut self to allow modification

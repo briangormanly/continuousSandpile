@@ -30,7 +30,7 @@ use crate::util::constants::Z_SIZE;
  * determined as a random value between 1 and 6
  */
 pub struct Location {
-    pub id: usize,
+    pub id: u32,
     pub x: i32,
     pub y: i32,
     pub z: i32,
@@ -40,7 +40,7 @@ pub struct Location {
 }
 
 impl Location {
-    pub fn new(id: usize, x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
+    pub fn new(id: u32, x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
 
         // get the order of magnitude of a random power-law distribution
         let additionalCap = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
@@ -55,7 +55,7 @@ impl Location {
             resilience: BASE_RESILIENCE + additionalRes,  
         }
     }
-    pub fn emptySpace(id: usize, x: i32, y: i32, z: i32) -> Self {
+    pub fn emptySpace(id: u32, x: i32, y: i32, z: i32) -> Self {
 
         Location {
             id,
