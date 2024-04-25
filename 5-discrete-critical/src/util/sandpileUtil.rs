@@ -13,36 +13,6 @@ use crate::util::constants::{ALPHA_MAIN, ALPHA_AVALANCHE_SIZE, X_SIZE, Y_SIZE, Z
 
 
 
-/**
- * 
- */
-// pub fn drawPile() {
-//     println!("Drawing the pile");
-
-//     // get the array of locations
-//     let array = Location::getLocations();
-
-
-//     let mut grandTotal = 0;
-//     for z in (0..Z_SIZE).rev() {
-
-//         for y in 0..Y_SIZE {
-
-//             print!("\n");
-
-//             for x in 0..X_SIZE {
-//                 //print!("x:{}, y:{}, z:{} value:{}", x, y, z, array[x][y][z]);
-//                 print!("{}", array[x][y][z].getNumberOfGrains());
-//                 grandTotal += array[x][y][z].getNumberOfGrains();
-//             }
-            
-//         }
-//         println!("\n");
-//     }
-//     println!(" ");
-//     println!("Total grains in the pile: {}", grandTotal);
-// }
-
 
 /**
  * Mathematics and probability functions

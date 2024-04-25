@@ -44,7 +44,7 @@ impl Avalanche {
         let mut grain = crate::models::grain::Grain::getGrainById(grainId).unwrap();
 
 
-        println!("Start Update for Grain {} in {:?} state at location x: {}, y: {}, z: {} has energy {}", grain.id, grain.state, grain.x, grain.y, grain.z, grain.energy);
+        println!("\n|{:?}| START Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
         match grain.state {
             GrainState::Unknown => {
                 //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
@@ -61,28 +61,32 @@ impl Avalanche {
             GrainState::Impact => {
                 // get the location with the same x, y, z as the gain
                 let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
-                println!("------- Location {} is starting with {} grains", location.id, location.grainIds.len()); 
-                let transferredEnergy: usize = location.incomingGrain(grain.id);
+                println!("------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds);  
+
+                // get the impact energy from the grain
+                let impactEnergy: usize = grain.energy;
+
+                location.incomingGrain(grain.id);
                 location.saveLocation();
+
+                
+                println!("------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()); 
 
                 // if the location has more then 1 grain, check to see if the location has been perturbed by the impact
                 // call the location purtubation method
                 let mut rnd = rand::thread_rng();
-                let perturbedGrains: Vec<u32> = location.purtubation(transferredEnergy, &mut rnd);
+                let perturbedGrains: Vec<u32> = location.purtubation(impactEnergy, &mut rnd);
 
                 // if there are grains that have been perturbed, add them to the avalanche
                 for perGrainId in perturbedGrains {
-                    // retrieve the grain from the grain list
-                    let mut grain = crate::models::grain::Grain::getGrainById(perGrainId).unwrap();
-                    grain.state = GrainState::Rolling;
-                    grain.energy += 1;
-                    grain.saveGrain();
-
-                    self.addGrain(perGrainId);
+                    // add the perturbed grain to the avalanche if it is not already in the avalanche
+                    if !self.grainIds.contains(&perGrainId) {
+                        self.addGrain(perGrainId);
+                    }
+                    
                 }           
+                println!("------- IMPACT Avalanche now has {} grains", self.grainIds.len()); 
 
-
-                println!("------- Location {} is ending with {} grains", location.id, location.grainIds.len()); 
                 
             },
             GrainState::Rolling => {
@@ -95,10 +99,11 @@ impl Avalanche {
             },
         }
 
-        println!("End Update for Grain {} in {:?} state at location x: {}, y: {}, z: {} has energy {}", grain.id, grain.state, grain.x, grain.y, grain.z, grain.energy);
+        println!("|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
         // Remove the grains that were marked for removal
+        println!("Removing grains {:?} avalanche contains before removal: {} grains", toRemove, self.grainIds.len());
         self.grainIds.retain(|id| !toRemove.contains(id));
-            
+        println!("Avalanche now has {} grains", self.grainIds.len());
         
 
         

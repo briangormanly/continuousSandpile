@@ -100,19 +100,86 @@ fn main() {
         // print out all of the states of the grains in the avalanche
         for grainId in &avalanches[i].grainIds {
             let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
-            println!("Grain {} is in state {:?} at the start of the run", grain.id, grain.state);
         }
 
-        // for each grain in the avaanche update the grain
-        // update the avalanche while there are grains in the avalanche
-        while avalanches[i].grainIds.len() > 0{
-            for j in 0..avalanches[i].grainIds.len() {
+        // Run through the avalanche until all grains have come to rest
+        // first get the initial number of grains in the avalanche
+        let mut totalGrains = avalanches[i].grainIds.len();
+
+        // while the number of grains in the avalanche is greater than 0, this avalanche is still active
+        while totalGrains > 0 {
+            // determine the number of grains in the avalanche at this point in time
+            totalGrains = avalanches[i].grainIds.len();
+
+            // for each grain currently in the avalanche, update the grain at this time period
+            let mut previous_len = totalGrains;
+            for mut j in 0..totalGrains {
+                // get the grains id
+                println!("about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
+                // if the number of grains in the avalanche has changed, decrease the index
+                if avalanches[i].grainIds.len() < previous_len && j > 0 {
+                    
+                    j = avalanches[i].grainIds.len() -1;
+                    println!("removing grain(s) from avalanche, new j value is {}", j);
+                }
                 let grainId = avalanches[i].grainIds[j];
-                println!("Before::: number of grains in avalanche {} is {}", i, avalanches[i].grainIds.len());
+                // get the amount of grains in the avalanche before the update
+                let previous_len = avalanches[i].grainIds.len();
+
+                // perform the update on the grain
                 avalanches[i].update( grainId );
-                println!("After::: number of grains in avalanche {} is {}", i, avalanches[i].grainIds.len());
+
+                println!("total grains in avalanche based on array length is {}, previous length is {}, j value is {}",avalanches[i].grainIds.len(), previous_len, j);
+
+                
+
+                //println!("total grains in avalanche based on array length is {}, previous length is {}, j value is {}",avalanches[i].grainIds.len(), previous_len, j);
+                // // check to see if the total grains in the avalanche has changed in the update
+                // totalGrains = avalanches[i].grainIds.len();
+                // println!("total grains in avalanche based on array length is {}, j value is {}",totalGrains, j);
+                // if j >= totalGrains && j > 0 {
+                //     j = totalGrains - 1;
+                // }
+
             }
+
+
+
+
+            // // for each grain in the avalanche update the grain
+            // for j in 0..avalanches[i].grainIds.len() {
+            //     let grainId = avalanches[i].grainIds[j];
+            //     avalanches[i].update( grainId );
+            // }
+
+            // // update the total grains in the avalanche
+            // totalGrains = avalanches[i].grainIds.len();
         }
+
+
+
+        // // for each grain in the avaanche update the grain
+        // // update the avalanche while there are grains in the avalanche
+        // while avalanches[i].grainIds.len() > 0{
+        //     for j in 0..avalanches[i].grainIds.len() {
+        //         let grainId = avalanches[i].grainIds[j];
+        //         avalanches[i].update( grainId );
+        //     }
+        // }
+
+        // while avalanches[i].grainIds.len() > 0 {
+        //     let mut j = 0;
+        //     while j < avalanches[i].grainIds.len() {
+        //         let grainId = avalanches[i].grainIds[j];
+        //         let previous_len = avalanches[i].grainIds.len();
+        //         avalanches[i].update(grainId);
+        //         if avalanches[i].grainIds.len() < previous_len {
+        //             // an element was removed, decrease the index
+        //             j -= 1;
+        //         }
+        //         j += 1;
+        //     }
+        // }
         
         
 
@@ -193,6 +260,9 @@ fn main() {
 
     //draw the pile
     if DEBUG && DEBUG_DISPLAY_PILE {
+        
+        models::location::Location::displayAllLocationFinalPositions();
+        models::grain::Grain::displayAllGrainsLocations();
         models::location::Location::displayPile();
     }
 

@@ -164,6 +164,7 @@ impl Location {
             // save the grain
             grain.saveGrain();
 
+
             return energy;
             
 
@@ -180,17 +181,13 @@ impl Location {
             let energy: usize = grain.energy;
             // reduce the grains energy from the impact
             if grain.energy > 1 {
-                grain.energy -= 1;
+                grain.energy = 1;
             }
             // save the grain state
             grain.saveGrain();
 
             return energy;
         }
-
-        // check purtubation from imact of the grain
-        //self.purtubation(grain, avalanche, rnd); 
-        println!("TODO check purtubation from impact of the grain to location x: {}, y: {}, z: {}", self.x, self.y, self.z);
         
     }
 
@@ -200,16 +197,16 @@ impl Location {
         // as random additional energy representing a purtubation of the location
         // add this value to the grains current energy
         let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
-        let tempSpeed = incomingGrainEnergy + additionalEnergy as usize;
+        let totalEnergy = incomingGrainEnergy + additionalEnergy as usize;
 
         // determine if this purturbation will cause an avalanche
         if DEBUG && DEBUG_AVALANCHE { 
-            println!("resilience {} < total energy: {} for location {}, {}, {}", self.resilience, tempSpeed, self.x, self.y, self.z); 
+            println!("resilience {} < total energy: {} ({} + {}) for location {}, {}, {}", self.resilience, totalEnergy, incomingGrainEnergy, additionalEnergy, self.x, self.y, self.z); 
         }
 
-        if self.resilience < tempSpeed && self.z > 0 {
+        if self.resilience < totalEnergy && self.z > 0 {
             // start an avalanche
-            if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
+            if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche started at location x: {}, y: {}, z: {} location contains {} grains (before pertubation)", self.x, self.y, self.z, self.grainIds.len()) };
             // set the size of the avalanche
             let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
             
@@ -225,11 +222,72 @@ impl Location {
             for i in 0..avalancheSize {
                 looseGrainIds.push(self.grainIds.pop().unwrap());
             }
+
+            // remove the grain from the location ids
+            self.grainIds.retain(|&x| x != looseGrainIds[0]);
+
+            // change the grains state to rolling
+            for grainId in &looseGrainIds {
+                let mut grain = Grain::getGrainById(*grainId).unwrap();
+                grain.state = GrainState::Rolling;
+                grain.energy += 1;
+                println!("Grain id {} is part of the avalanche with status {:?} is rolling to a lower location", grain.id, grain.state);
+                grain.saveGrain();
+            }
+
+            // save the location
+            self.saveLocation();
+
+            if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche at location x: {}, y: {}, z: {} location contains {} grains (after pertubation)", self.x, self.y, self.z, self.grainIds.len()) };
             return looseGrainIds;
 
         } else {
+            if DEBUG && DEBUG_AVALANCHE { println!("Location x: {}, y: {}, z: {} was not perturbed", self.x, self.y, self.z) };
             Vec::new() // Return an empty vector
         }
+    }
+
+    /**
+     * Get the lower neighborhood of a location by its x, y, z coordinates
+     */
+    pub fn getLowerNeighborhood( x: i32, y: i32, z: i32 ) -> Vec<(i32, i32, i32)> {
+        let mut lowerNeighborhood: Vec<(i32, i32, i32)> = Vec::with_capacity(9);
+
+    
+        if z > 0 {
+            // add the locations in the neighborhood at z-1
+            // to the lowerNeighborhood
+    
+            let minX = if x == 0 { 0 } else { x-1 } as i32;
+            let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
+            let minY = if y == 0 { 0 } else { y-1 } as i32;
+            let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE } as i32;
+            if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
+    
+            // keep track of how many locations are not at capacity in the lower neighborhood
+            let belowNumberOpen = 0;
+    
+            // iterate for each level below the current level
+            for i in minX..maxX + 1 {
+                for j in minY..maxY + 1 {
+
+                    // check to see is the spot is in bounds
+                    if i >= X_SIZE || j >= Y_SIZE {
+                        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
+                        // add an out of bounds spot to the belowSlice array
+                       lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
+                    }
+                    else {
+
+                        // get the location at this location and add to the lowerNeighborhood
+                        let location = Location::getLocationByXyz(i, j, z-1).unwrap();
+                        lowerNeighborhood.push((i, j, z-1));
+                    }
+                }
+            }
+        }
+        
+        return lowerNeighborhood;
     }
 
     /**
@@ -255,6 +313,26 @@ impl Location {
         println!(" ");
         println!("Total grains in the pile: {}", grandTotal);
 
+    }
+
+    pub fn displayAllLocationFinalPositions() {
+        // show the contents of all the locations in the sandpile
+        for z in (0..Z_SIZE).rev() {
+            for y in 0..Y_SIZE {
+                for x in 0..X_SIZE {
+                    // get the location at this x, y, z
+                    let location = Location::getLocationByXyz(x, y, z).unwrap();
+
+                    // print the location information
+                    println!("\nx:{}, y:{}, z:{} grains: {:?}", x, y, z, location.grainIds);
+                    // get all of the grains at this location and print their information
+                    for grainId in &location.grainIds {
+                        let grain = Grain::getGrainById(*grainId).unwrap();
+                        println!(" Grain id: {}, x: {}, y: {}, z: {}, energy: {}", grain.id, grain.x, grain.y, grain.z, grain.energy);
+                    }
+                }
+            }
+        }
     }
 
 
@@ -313,48 +391,7 @@ impl Location {
 
     
 
-    /**
-     * Get the lower neighborhood of a location by its x, y, z coordinates
-     */
-    pub fn getLowerNeighborhood( x: i32, y: i32, z: i32 ) -> Vec<(i32, i32, i32)> {
-        let mut lowerNeighborhood: Vec<(i32, i32, i32)> = Vec::with_capacity(9);
-
     
-        if z > 0 {
-            // add the locations in the neighborhood at z-1
-            // to the lowerNeighborhood
-    
-            let minX = if x == 0 { 0 } else { x-1 } as i32;
-            let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
-            let minY = if y == 0 { 0 } else { y-1 } as i32;
-            let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE } as i32;
-            if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
-    
-            // keep track of how many locations are not at capacity in the lower neighborhood
-            let belowNumberOpen = 0;
-    
-            // iterate for each level below the current level
-            for i in minX..maxX + 1 {
-                for j in minY..maxY + 1 {
-
-                    // check to see is the spot is in bounds
-                    if i >= X_SIZE || j >= Y_SIZE {
-                        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
-                        // add an out of bounds spot to the belowSlice array
-                       lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
-                    }
-                    else {
-
-                        // get the location at this location and add to the lowerNeighborhood
-                        let location = Location::getLocationByXyz(i, j, z-1).unwrap();
-                        lowerNeighborhood.push((i, j, z-1));
-                    }
-                }
-            }
-        }
-        
-        return lowerNeighborhood;
-    }
     
 
     //fn grainImpact(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {

@@ -149,16 +149,59 @@ impl Grain {
     pub fn roll(&mut self) {
         // get the lower neighborhood for this location
         let lowerNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
+        println!("grain at x: {}, y: {}, z: {} has a lower length of {}", self.x, self.y, self.z, lowerNeighborhood.len());
 
         // print out the lower neighborhood which contains a Vec<(i32, i32, i32)>
-        if DEBUG && DEBUG_LOCAL_NEIGHBORS {
-            println!("Grain {} is rolling to a lower location", self.id);
-            for (x, y, z) in lowerNeighborhood {
-                println!("x: {}, y: {}, z: {} - Capacity: {}", x, y, z, crate::models::location::Location::getLocationByXyz(x, y, z).unwrap().capacity);
+        // if DEBUG && DEBUG_LOCAL_NEIGHBORS {
+        //     println!("Grain {} is rolling to a lower location", self.id);
+        //     for (x, y, z) in lowerNeighborhood {
+        //         println!("x: {}, y: {}, z: {} - Capacity: {}", x, y, z, crate::models::location::Location::getLocationByXyz(x, y, z).unwrap().capacity);
+        //     }
+        // }
+
+        // check to see if the grain can fall to a lower location
+        if lowerNeighborhood.len() > 0 {
+            // pick a location at random from the lower neighborhood and fall to it.
+            let mut rnd = rand::thread_rng();
+            let locationIndex = rnd.gen_range(0..lowerNeighborhood.len());
+            
+            // check to see if the location has capacity
+            //if lowerNeighboorhood[locationIndex].grainIds.len() < lowerNeighboorhood[locationIndex].capacity {
+                // the grain can fall to the location
+
+            self.x = lowerNeighborhood[locationIndex].0;
+            self.y = lowerNeighborhood[locationIndex].1;
+            self.z = lowerNeighborhood[locationIndex].2;
+            self.energy += 1;
+
+            
+            if DEBUG && DEBUG_LOCATION {
+                println!("Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
             }
+            self.state = GrainState::Impact;
+            
+        } else {
+            // the grain has come to rest
+            println!("--------------------------------------- LOWER NEIGHBORHOOD IS EMPTY --------------------------------------- z was {}", self.z);
+            self.state = GrainState::Stationary;
         }
               
 
+    }
+
+    pub fn displayAllGrainsLocations() {
+        let grains_by_id_guard = GRAINS_BY_ID.lock().unwrap();
+        let mut grains: Vec<_> = grains_by_id_guard.iter().collect();
+    
+        // Sort the grains by their ID in ascending order
+        grains.sort_by_key(|&(id, _)| id);
+    
+        for (id, grain) in grains {
+            println!("Grain {} is at x: {}, y: {}, z: {}", id, grain.x, grain.y, grain.z);
+        }
+    
+        // Display the total number of grains
+        println!("Total grains: {}", grains_by_id_guard.len());
     }
 
     /**
