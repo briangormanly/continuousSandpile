@@ -108,14 +108,11 @@ fn main() {
         while avalanches[i].grainIds.len() > 0{
             for j in 0..avalanches[i].grainIds.len() {
                 let grainId = avalanches[i].grainIds[j];
+                println!("Before::: number of grains in avalanche {} is {}", i, avalanches[i].grainIds.len());
                 avalanches[i].update( grainId );
+                println!("After::: number of grains in avalanche {} is {}", i, avalanches[i].grainIds.len());
             }
         }
-        
-
-            
-        
-
         
         
 

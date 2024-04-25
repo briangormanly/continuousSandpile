@@ -32,9 +32,7 @@ use crate::models::avalanche::Avalanche;
 use crate::models::grain::GrainState;
 
 
-/**
- * Static HashMap to store all the locations in the sandpile
- */
+//Static HashMap to store all the locations in the sandpile
 lazy_static! { // Require the lazy_static crate to handle static Mutex
     // create a static mutex HashMap to store all the locations, use the location coordinates as the key for constant time access
     static ref LOCATIONS: Mutex<HashMap<(i32, i32, i32), Location>> = Mutex::new(HashMap::new());
@@ -139,7 +137,11 @@ impl Location {
         }
     }
 
-    pub fn incomingGrain(&mut self, grainId: u32) {
+    /**
+     * Attempt to add a grain to the location
+     * 
+     */
+    pub fn incomingGrain(&mut self, grainId: u32) -> usize {
 
         // Check if the location has capacity to add a grain
         if self.grainIds.len() < self.capacity {
@@ -153,6 +155,7 @@ impl Location {
             grain.state = GrainState::Stationary;
 
             // remove the grains energy
+            let energy = grain.energy;
             grain.energy = 0;
 
             // note that the grain stoped at this location
@@ -161,11 +164,11 @@ impl Location {
             // save the grain
             grain.saveGrain();
 
-            println!(" Location: x: {}, y: {}, z: {} has {} grains", self.x, self.y, self.z, self.grainIds.len());
+            return energy;
             
 
         } else {
-            // if full, start an avalanche
+            // if full the grain will roll down the pile
             println!("Capacity reached, cannot add more grains");
 
             // get the grain by its id
@@ -173,14 +176,60 @@ impl Location {
 
             // set the grain state back to rolling
             grain.state = GrainState::Rolling;
+
+            let energy: usize = grain.energy;
+            // reduce the grains energy from the impact
+            if grain.energy > 1 {
+                grain.energy -= 1;
+            }
             // save the grain state
             grain.saveGrain();
+
+            return energy;
         }
 
         // check purtubation from imact of the grain
         //self.purtubation(grain, avalanche, rnd); 
         println!("TODO check purtubation from impact of the grain to location x: {}, y: {}, z: {}", self.x, self.y, self.z);
         
+    }
+
+
+    pub fn purtubation(&mut self, incomingGrainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
+        // get the order of magnitude of a random power-law distribution
+        // as random additional energy representing a purtubation of the location
+        // add this value to the grains current energy
+        let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
+        let tempSpeed = incomingGrainEnergy + additionalEnergy as usize;
+
+        // determine if this purturbation will cause an avalanche
+        if DEBUG && DEBUG_AVALANCHE { 
+            println!("resilience {} < total energy: {} for location {}, {}, {}", self.resilience, tempSpeed, self.x, self.y, self.z); 
+        }
+
+        if self.resilience < tempSpeed && self.z > 0 {
+            // start an avalanche
+            if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
+            // set the size of the avalanche
+            let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+            
+            // ensure that the base avalanche size is not larger than the number of grains
+            if self.grainIds.len() < avalancheSize {
+                avalancheSize = self.grainIds.len();
+            }
+
+            if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche size: {}", avalancheSize) };
+            let mut looseGrainIds: Vec<u32> = Vec::new();
+
+            // return the grains that are part of the avalanche
+            for i in 0..avalancheSize {
+                looseGrainIds.push(self.grainIds.pop().unwrap());
+            }
+            return looseGrainIds;
+
+        } else {
+            Vec::new() // Return an empty vector
+        }
     }
 
     /**
@@ -237,70 +286,32 @@ impl Location {
 
 
 
-    pub fn grainImpact(&mut self, grainId: u32, grainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
+    // pub fn grainImpact(&mut self, grainId: u32, grainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
 
-        println!("-------- GRAIN IMPACT START ---------\nGrain impact at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
-        // first check the impact of the incoming grain on the location
-        let looseGrainIds = self.purtubation(grainId, grainEnergy, rnd);
-        println!(" purtubation produced looseGrainIds: {:?}", looseGrainIds);
+    //     println!("-------- GRAIN IMPACT START ---------\nGrain impact at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
+    //     // first check the impact of the incoming grain on the location
+    //     let looseGrainIds = self.purtubation(grainId, grainEnergy, rnd);
+    //     println!(" purtubation produced looseGrainIds: {:?}", looseGrainIds);
 
-        // check to see if the location was perturbed
-        if looseGrainIds.len() == 0 {
-            // the location was not perturbed, add the grain
-            // Check if the location has capacity to add a grain
-            if self.grainIds.len() < self.capacity {
-                // the location is not full, add the grain
-                self.grainIds.push(grainId);
-            } else {
-                // pile is full, but was not perturbed, let the grain fall.
-                println!("Capacity reached, cannot add more grains");
-            }
-            return looseGrainIds;
-        } else {
-            // the location was perturbed, add the loose grains to the avalanche
-            return looseGrainIds;
-        }
-    }
+    //     // check to see if the location was perturbed
+    //     if looseGrainIds.len() == 0 {
+    //         // the location was not perturbed, add the grain
+    //         // Check if the location has capacity to add a grain
+    //         if self.grainIds.len() < self.capacity {
+    //             // the location is not full, add the grain
+    //             self.grainIds.push(grainId);
+    //         } else {
+    //             // pile is full, but was not perturbed, let the grain fall.
+    //             println!("Capacity reached, cannot add more grains");
+    //         }
+    //         return looseGrainIds;
+    //     } else {
+    //         // the location was perturbed, add the loose grains to the avalanche
+    //         return looseGrainIds;
+    //     }
+    // }
 
-    fn purtubation(&mut self, incomingGrain: u32, incomingGrainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
-        // get the order of magnitude of a random power-law distribution
-        // as random additional energy representing a purtubation of the location
-        // add this value to the grains current energy
-        let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
-        let tempSpeed = incomingGrainEnergy + additionalEnergy as usize;
-
-        // determine if this purturbation will cause an avalanche
-        if DEBUG && DEBUG_AVALANCHE { 
-            println!("resilience {} < total energy: {} for location {}, {}, {}", self.resilience, tempSpeed, self.x, self.y, self.z); 
-        }
-
-        if self.resilience < tempSpeed && self.z > 0 {
-            // start an avalanche
-            if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche started at location x: {}, y: {}, z: {} which contains {} grains", self.x, self.y, self.z, self.grainIds.len()) };
-            // set the size of the avalanche
-            let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
-            
-            // ensure that the base avalanche size is not larger than the number of grains
-            if self.grainIds.len() < avalancheSize {
-                avalancheSize = self.grainIds.len();
-            }
-
-            // add the perturbed grain to the avalanche
-            //avalanche.addGrain();
-
-            if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche size: {}", avalancheSize) };
-            let mut looseGrainIds: Vec<u32> = Vec::new();
-
-            // return the grains that are part of the avalanche
-            for i in 0..avalancheSize {
-                looseGrainIds.push(self.grainIds.pop().unwrap());
-            }
-            return looseGrainIds;
-
-        } else {
-            Vec::new() // Return an empty vector
-        }
-    }
+    
 
     /**
      * Get the lower neighborhood of a location by its x, y, z coordinates
@@ -320,7 +331,7 @@ impl Location {
             if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
     
             // keep track of how many locations are not at capacity in the lower neighborhood
-            let mut belowNumberOpen = 0;
+            let belowNumberOpen = 0;
     
             // iterate for each level below the current level
             for i in minX..maxX + 1 {

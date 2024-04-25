@@ -5,7 +5,7 @@ pub const DEBUG: bool = true;
 pub const DEBUG_INIT: bool = true;
 pub const DEBUG_AVALANCHE: bool = true;
 pub const DEBUG_LOCATION: bool = true;
-pub const DEBUG_LOCAL_NEIGHBORS: bool = false;
+pub const DEBUG_LOCAL_NEIGHBORS: bool = true;
 pub const DEBUG_GRAIN_IMPACT: bool = false;
 
 pub const DEBUG_DISPLAY_PILE: bool = true;
@@ -23,10 +23,10 @@ pub const ALPHA_AVALANCHE_SIZE: f64 = 1.2;
 // total allowed demensions of the pile
 pub const X_SIZE: i32 = 5;
 pub const Y_SIZE: i32 = 5;
-pub const Z_SIZE: i32 = 4;
+pub const Z_SIZE: i32 = 5;
 
 // Physics constants
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
-pub const TOTAL_GRAINS: usize = 20;
+pub const TOTAL_GRAINS: usize = 30;

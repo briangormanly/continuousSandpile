@@ -1,3 +1,6 @@
+extern crate rand;
+use rand::Rng;
+
 use crate::models::grain::Grain;
 use crate::models::grain::GrainState;
 
@@ -59,8 +62,26 @@ impl Avalanche {
                 // get the location with the same x, y, z as the gain
                 let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
                 println!("------- Location {} is starting with {} grains", location.id, location.grainIds.len()); 
-                location.incomingGrain(grain.id);
+                let transferredEnergy: usize = location.incomingGrain(grain.id);
                 location.saveLocation();
+
+                // if the location has more then 1 grain, check to see if the location has been perturbed by the impact
+                // call the location purtubation method
+                let mut rnd = rand::thread_rng();
+                let perturbedGrains: Vec<u32> = location.purtubation(transferredEnergy, &mut rnd);
+
+                // if there are grains that have been perturbed, add them to the avalanche
+                for perGrainId in perturbedGrains {
+                    // retrieve the grain from the grain list
+                    let mut grain = crate::models::grain::Grain::getGrainById(perGrainId).unwrap();
+                    grain.state = GrainState::Rolling;
+                    grain.energy += 1;
+                    grain.saveGrain();
+
+                    self.addGrain(perGrainId);
+                }           
+
+
                 println!("------- Location {} is ending with {} grains", location.id, location.grainIds.len()); 
                 
             },

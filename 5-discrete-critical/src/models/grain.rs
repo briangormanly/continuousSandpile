@@ -79,21 +79,21 @@ impl Grain {
 
         }
         if DEBUG && DEBUG_INIT {
-            let grains = GRAINS_BY_ID.lock().unwrap();
-            let length = grains.len();
+            let grains: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
+            let length: usize = grains.len();
             println!("---------------- Grains created with count: {} ----------------", grains.len());
         }
     }
 
     // Method to retrieve grains by location
     pub fn getGrainsByLocation(x: i32, y: i32, z: i32) -> Vec<Grain> {
-        let grains = GRAINS_BY_LOCATION.lock().unwrap();
+        let grains: std::sync::MutexGuard<'_, HashMap<(i32, i32, i32), Vec<Grain>>> = GRAINS_BY_LOCATION.lock().unwrap();
         grains.get(&(x, y, z)).cloned().unwrap_or_else(Vec::new)
     }
 
     // Method to retrieve a grain by ID
     pub fn getGrainById(id: u32) -> Option<Grain> {
-        let grains = GRAINS_BY_ID.lock().unwrap();
+        let grains: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
         grains.get(&id).cloned()
     }
 
@@ -102,10 +102,10 @@ impl Grain {
      * Handles adding the grain to the grains_by_location and grains_by_id HashMaps
      */
     pub fn saveGrain(&mut self) {
-        let mut grains_by_location = GRAINS_BY_LOCATION.lock().unwrap();
-        let mut grains_by_id = GRAINS_BY_ID.lock().unwrap();
+        let mut grains_by_location: std::sync::MutexGuard<'_, HashMap<(i32, i32, i32), Vec<Grain>>> = GRAINS_BY_LOCATION.lock().unwrap();
+        let mut grains_by_id: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
 
-        let location_key = (self.x, self.y, self.z);
+        let location_key: (i32, i32, i32) = (self.x, self.y, self.z);
         grains_by_location.entry(location_key).or_insert_with(Vec::new).push(self.clone());
 
         grains_by_id.insert(self.id, self.clone());
@@ -148,13 +148,13 @@ impl Grain {
      */
     pub fn roll(&mut self) {
         // get the lower neighborhood for this location
-        let lowerNeighborhood = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
+        let lowerNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
 
         // print out the lower neighborhood which contains a Vec<(i32, i32, i32)>
         if DEBUG && DEBUG_LOCAL_NEIGHBORS {
             println!("Grain {} is rolling to a lower location", self.id);
             for (x, y, z) in lowerNeighborhood {
-                println!("x: {}, y: {}, z: {}", x, y, z);
+                println!("x: {}, y: {}, z: {} - Capacity: {}", x, y, z, crate::models::location::Location::getLocationByXyz(x, y, z).unwrap().capacity);
             }
         }
               
@@ -166,10 +166,10 @@ impl Grain {
      * Handles adding the grain to the grains_by_location and grains_by_id HashMaps
      */
     fn addGrain(grain: Grain) {
-        let mut grains_by_location = GRAINS_BY_LOCATION.lock().unwrap();
-        let mut grains_by_id = GRAINS_BY_ID.lock().unwrap();
+        let mut grains_by_location: std::sync::MutexGuard<'_, HashMap<(i32, i32, i32), Vec<Grain>>> = GRAINS_BY_LOCATION.lock().unwrap();
+        let mut grains_by_id: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
 
-        let location_key = (grain.x, grain.y, grain.z);
+        let location_key: (i32, i32, i32) = (grain.x, grain.y, grain.z);
         grains_by_location.entry(location_key).or_insert_with(Vec::new).push(grain.clone());
 
         grains_by_id.insert(grain.id, grain);
