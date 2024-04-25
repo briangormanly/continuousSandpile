@@ -9,13 +9,13 @@
   Starts with everything from 2-sandpile-basic-random
   Additions / Changes:
    * Density for each pile location
-     * Sandpile locations have a capacity of 4 grains plus the output of the order of 
+     * Sandpile locations have a capacity of 4 grains plus the output of the order of
      *  magnitude power-law distribution
-     * 
+     *
    * Moment
-     * Gains move with a magnatude (speed) and direction 
+     * Gains move with a magnatude (speed) and direction
        * Initial speed starts at 1 but kinetic energy can be transferred in collisions
-       * speed increases as grain falls 
+       * speed increases as grain falls
      * Direction of impacted grain movement is determined by direction of impacting grain
    * Energy from impacts radiate through surrounding grains
 
@@ -35,7 +35,6 @@ use models::avalanche::Avalanche;
 use models::grain::Grain;
 use models::location::Location;
 
-//use util::sandpileUtil::drawPile;
 use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
 
 
@@ -62,7 +61,7 @@ fn main() {
 
     // initialize the locations as a static mutex hashmap
     models::location::Location::initializeLocations(&mut rnd);
-    
+
 
     // initialize a vec of all grains
     //let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
@@ -75,7 +74,7 @@ fn main() {
     // initialize a vec of all avalanches
     let mut avalanches: Vec<Avalanche> = Vec::with_capacity(TOTAL_GRAINS);
 
-    // initialize all the avalanches in the array each grain causes an avalanche 
+    // initialize all the avalanches in the array each grain causes an avalanche
     // of some size, might be as small as joining the first location it lands on
     // or as big
     initializeAvalanches(&mut avalanches);
@@ -83,14 +82,14 @@ fn main() {
     if DEBUG && DEBUG_INIT {
         println!("---------------- Avalanches created with count: {} ----------------", avalanches.len());
     }
-    
-    // 
+
+    //
     // Start the simulation
     // for each grain:
     // - add the gain to an avalanche
     // - determine the initial location
     // - fall until the grain lands on a location that is not at capacity
-    // 
+    //
     for i in 0..TOTAL_GRAINS {
 
         // Add the new falling grain to the avalanche, this is grain 0
@@ -101,24 +100,29 @@ fn main() {
         // print out all of the states of the grains in the avalanche
         for grainId in &avalanches[i].grainIds {
             let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
-            println!("Grain {} is in state {:?}", grain.id, grain.state);
+            println!("Grain {} is in state {:?} at the start of the run", grain.id, grain.state);
         }
 
+        // for each grain in the avaanche update the grain
         // update the avalanche while there are grains in the avalanche
-        //while avalanches[i].grainIds.len() > 0 {
-            // loop through all the grains in the avalanche
+        while avalanches[i].grainIds.len() > 0{
             for j in 0..avalanches[i].grainIds.len() {
                 let grainId = avalanches[i].grainIds[j];
                 avalanches[i].update( grainId );
             }
+        }
+        
 
             
-        //}
+        
+
+        
+        
 
         // print out all of the states of the grains in the avalanche
         for grainId in &avalanches[i].grainIds {
             let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
-            println!("Grain {} is in state {:?}", grain.id, grain.state);
+            println!("Grain {} is in state {:?} at the end of the run", grain.id, grain.state);
             // print each grains location
             println!("Grain {} is at location x {}, y {}, z {}", grain.id, grain.x, grain.y, grain.z);
         }
@@ -167,34 +171,34 @@ fn main() {
         //     }
 
         //     // print out all the locations in the lower neighborhood
-        //     // if DEBUG && DEBUG_LOCAL_NEIGHBORS { 
+        //     // if DEBUG && DEBUG_LOCAL_NEIGHBORS {
         //     //     println!("Lower neighborhood for x: {}, y: {}, z: {}", x, y, z);
         //     //     for location in lowerNeighborhood {
         //     //         println!("Location x: {}, y: {}, z: {} can fit {} more grains", location.x, location.y, location.z, location.capacity - location.grainIds.len(),);
         //     //     }
         //     // }
 
-            
+
         //     if DEBUG && DEBUG_AVALANCHE { println!("----Capacity End---- Grain {} landed at x: {}, y: {}, z: {}", i, x, y, z); }
 
         // }
 
-        
+
 
 
         // // add the grain to the location
         // let looseGrains = array[x][y][z].grainImpact(grains[i].id, grains[i].energy, &mut rnd);
-        
+
 
 
 
     }
 
-    // draw the pile
-    // if DEBUG && DEBUG_DISPLAY_PILE {
-    //     drawPile(&locations);
-    // }
-    
+    //draw the pile
+    if DEBUG && DEBUG_DISPLAY_PILE {
+        models::location::Location::displayPile();
+    }
+
 
     // createa Location
     //let mut location = Location::new(0, 0, 0);
@@ -204,7 +208,7 @@ fn main() {
 
 fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
     for i in 0..TOTAL_GRAINS {
-        // create a grain 
+        // create a grain
         let avalanche = Avalanche::new(i as u32);
         avalanches.push(avalanche);
     }
@@ -250,7 +254,7 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
 //     }
 
 //     let mut z = Z_SIZE - 1;
-    
+
 //     // fall until the grain lands on a location that is not at capacity
 //     // fall through any locations that are empty (resilience == 0)
 //     // if not at z=0, check the location below to see if it has capacity
@@ -261,7 +265,7 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
 //             //grains[i].incrementEnergy();
 //         }
 //     }
-    
+
 //     // return the location
 //     (x, y, z)
 // }

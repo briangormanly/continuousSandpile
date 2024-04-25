@@ -8,7 +8,7 @@ pub const DEBUG_LOCATION: bool = true;
 pub const DEBUG_LOCAL_NEIGHBORS: bool = false;
 pub const DEBUG_GRAIN_IMPACT: bool = false;
 
-pub const DEBUG_DISPLAY_PILE: bool = false;
+pub const DEBUG_DISPLAY_PILE: bool = true;
 
 // minimum value (multiplier) for the power-law distribution
 // can be used to set a lower bound.
@@ -21,12 +21,12 @@ pub const ALPHA_EXTRA_ENERGY: f64 = 2.0;
 pub const ALPHA_AVALANCHE_SIZE: f64 = 1.2;
 
 // total allowed demensions of the pile
-pub const X_SIZE: usize = 5;
-pub const Y_SIZE: usize = 5;
-pub const Z_SIZE: usize = 2;
+pub const X_SIZE: i32 = 5;
+pub const Y_SIZE: i32 = 5;
+pub const Z_SIZE: i32 = 4;
 
 // Physics constants
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
-pub const TOTAL_GRAINS: usize = 10;
+pub const TOTAL_GRAINS: usize = 20;

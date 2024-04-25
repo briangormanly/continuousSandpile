@@ -26,6 +26,11 @@ use crate::util::constants::X_SIZE;
 use crate::util::constants::Y_SIZE;
 use crate::util::constants::Z_SIZE;
 
+// internal models
+use crate::models::grain::Grain;
+use crate::models::avalanche::Avalanche;
+use crate::models::grain::GrainState;
+
 
 /**
  * Static HashMap to store all the locations in the sandpile
@@ -93,22 +98,21 @@ impl Location {
     }
 
     // Add getLocationByLocation to retrieve a location by coordinates
-    pub fn getLocationByLocation(x: i32, y: i32, z: i32) -> Option<Location> {
+    pub fn getLocationByXyz(x: i32, y: i32, z: i32) -> Option<Location> {
         let locations = LOCATIONS.lock().unwrap();
         locations.get(&(x, y, z)).cloned()
     }
 
+    pub fn saveLocation(&mut self) {
+        let mut locations = LOCATIONS.lock().unwrap();
+        let location_key = (self.x, self.y, self.z);
+        locations.insert(location_key, self.clone());
 
-    // pub fn getLocationById(id: u32) -> Option<Location> {
-    //     let locations = LOCATIONS.lock().unwrap();
-    //     return locations.get(&id).cloned()
-    // }
+    }
 
-    // fn addLocation(location: Location) {
-    //     let mut locations = LOCATIONS.lock().unwrap();
-    //     locations.insert(location.id, location);
-    // }
-
+    /**
+     * Initialize all of the locations in the sandpile
+     */
     pub fn initializeLocations(rnd: &mut impl Rng) {
         let mut count = 0;
         for x in 0..X_SIZE {
@@ -124,29 +128,8 @@ impl Location {
                     Location::addLocation(location); // Add location to the HashMap
                     count += 1;
                     
-                    // // create a location
-                    // if x>=z && x<=X_SIZE-z-1 && y>=z && y<=Y_SIZE-z-1 {
-                    //     // create a location
-                    //     let location = Location::new(count as u32, x as i32, y as i32, z as i32, rnd);
-                    //     if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
-                        
-                    //     // add the location to the array
-                    //     column_z.push(location);
-                    // }
-                    // else {
-                    //     // empty 
-                    //     let location = Location::emptySpace(count as u32, x as i32, y as i32, z as i32);
-                    //     if DEBUG && DEBUG_INIT { println!("Creating location x: {}, y: {}, z: {} has Id {}, capacity {} and resilience {}", x, y, z, location.id, location.capacity, location.resilience); }
-    
-                    //     column_z.push(location);
-                    //     //println!("!!!Location outside of critical slope x: {}, y: {}, z: {}", x, y, z);
-                    // }
-                    // count += 1;
-                }
-                //layer_y.push(column_z);
-                
+                }                
             }
-            //locations.push(layer_y);
         }
 
         if DEBUG && DEBUG_INIT {
@@ -155,6 +138,89 @@ impl Location {
             println!("---------------- Array of locations created with length: {} ----------------", length);
         }
     }
+
+    pub fn incomingGrain(&mut self, grainId: u32) {
+
+        // Check if the location has capacity to add a grain
+        if self.grainIds.len() < self.capacity {
+            // the location is not full, add the grain
+            self.grainIds.push(grainId);
+
+            // get the grain by its id
+            let mut grain = Grain::getGrainById(grainId as u32).unwrap();
+
+            // set the grain state to sationary
+            grain.state = GrainState::Stationary;
+
+            // remove the grains energy
+            grain.energy = 0;
+
+            // note that the grain stoped at this location
+            println!("Grain {} stopped at location x: {}, y: {}, z: {} Grian x: {}, y: {}, z: {}", grain.id, self.x, self.y, self.z, grain.x, grain.y, grain.z);
+
+            // save the grain
+            grain.saveGrain();
+
+            println!(" Location: x: {}, y: {}, z: {} has {} grains", self.x, self.y, self.z, self.grainIds.len());
+            
+
+        } else {
+            // if full, start an avalanche
+            println!("Capacity reached, cannot add more grains");
+
+            // get the grain by its id
+            let mut grain = Grain::getGrainById(grainId as u32).unwrap();
+
+            // set the grain state back to rolling
+            grain.state = GrainState::Rolling;
+            // save the grain state
+            grain.saveGrain();
+        }
+
+        // check purtubation from imact of the grain
+        //self.purtubation(grain, avalanche, rnd); 
+        println!("TODO check purtubation from impact of the grain to location x: {}, y: {}, z: {}", self.x, self.y, self.z);
+        
+    }
+
+    /**
+     * Display the contents of the sandpile
+     */
+    pub fn displayPile() {
+        // show the contents of all the locations in the sandpile
+        let mut grandTotal = 0;
+        for z in (0..Z_SIZE).rev() {
+            for y in 0..Y_SIZE {
+                print!("\n");
+                for x in 0..X_SIZE {
+                    // get the location at this x, y, z
+                    let location = Location::getLocationByXyz(x, y, z).unwrap();
+
+                    //print!("x:{}, y:{}, z:{} value:{}", x, y, z, );
+                    print!("{}", location.getNumberOfGrains());
+                    grandTotal += location.getNumberOfGrains();
+                }
+            }
+            println!("\n");
+        }
+        println!(" ");
+        println!("Total grains in the pile: {}", grandTotal);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // call purtubation
     // both require:
@@ -236,18 +302,21 @@ impl Location {
         }
     }
 
-    pub fn getLowerNeighborhood(array: &mut Vec<Vec<Vec<Location>>>, x: usize, y: usize, z: usize) -> Vec<&Location> {
-        let mut lowerNeighborhood: Vec<&Location> = Vec::with_capacity(9);
+    /**
+     * Get the lower neighborhood of a location by its x, y, z coordinates
+     */
+    pub fn getLowerNeighborhood( x: i32, y: i32, z: i32 ) -> Vec<(i32, i32, i32)> {
+        let mut lowerNeighborhood: Vec<(i32, i32, i32)> = Vec::with_capacity(9);
+
     
         if z > 0 {
             // add the locations in the neighborhood at z-1
             // to the lowerNeighborhood
     
-    
-            let minX = if x == 0 { 0 } else { x-1 };
-            let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE };
-            let minY = if y == 0 { 0 } else { y-1 };
-            let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE };
+            let minX = if x == 0 { 0 } else { x-1 } as i32;
+            let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
+            let minY = if y == 0 { 0 } else { y-1 } as i32;
+            let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE } as i32;
             if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
     
             // keep track of how many locations are not at capacity in the lower neighborhood
@@ -256,26 +325,21 @@ impl Location {
             // iterate for each level below the current level
             for i in minX..maxX + 1 {
                 for j in minY..maxY + 1 {
-                    
+
                     // check to see is the spot is in bounds
                     if i >= X_SIZE || j >= Y_SIZE {
                         if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
                         // add an out of bounds spot to the belowSlice array
-                        //belowSlice[belowNumberOpen] = (i, j);
-                        //belowNumberOpen += 1;
-    
-                        //continue;
+                       lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
                     }
-                    else if array[i as usize][j as usize][(z-1) as usize].grainIds.len() < array[i as usize][j as usize][(z-1) as usize].capacity {
-                        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1); }
-                        lowerNeighborhood.push(&array[i as usize][j as usize][(z-1) as usize]);
-                        belowNumberOpen += 1;
+                    else {
+
+                        // get the location at this location and add to the lowerNeighborhood
+                        let location = Location::getLocationByXyz(i, j, z-1).unwrap();
+                        lowerNeighborhood.push((i, j, z-1));
                     }
                 }
             }
-    
-            if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Below number open: {}", belowNumberOpen); }
-            //if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: Below slice: {:?}", lowerNeighborhood); }
         }
         
         return lowerNeighborhood;

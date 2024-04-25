@@ -25,8 +25,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut fallen_grains = 0;
 
-    //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
-    //let mut array: [[[usize; Z_SIZE]; Y_SIZE]; X_SIZE] = [[[0_usize; Z_SIZE]; Y_SIZE]; X_SIZE];
     let mut array = vec![vec![vec![0; Z_SIZE]; Y_SIZE]; X_SIZE];
     //let mut array = 
 

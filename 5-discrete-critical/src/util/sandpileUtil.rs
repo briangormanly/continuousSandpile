@@ -16,8 +16,13 @@ use crate::util::constants::{ALPHA_MAIN, ALPHA_AVALANCHE_SIZE, X_SIZE, Y_SIZE, Z
 /**
  * 
  */
-// pub fn drawPile(array: &Vec<Vec<Vec<Location>>>) {
+// pub fn drawPile() {
 //     println!("Drawing the pile");
+
+//     // get the array of locations
+//     let array = Location::getLocations();
+
+
 //     let mut grandTotal = 0;
 //     for z in (0..Z_SIZE).rev() {
 

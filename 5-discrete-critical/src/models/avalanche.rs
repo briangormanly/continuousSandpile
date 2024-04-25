@@ -10,7 +10,7 @@ pub struct Avalanche {
     pub id: u32,
     // Grains that are currently part of the avalanche
     pub grainIds: Vec::<u32>,
-    // Current locations being impacted by the avalanche
+    // List of all locations that have been affected by any of the gains in the avalanche
     pub locationIds: Vec::<u32>,
     
     // direction of the avalanche, determines which
@@ -33,29 +33,54 @@ impl Avalanche {
 
     // update the movement of all the grains currently in the avalanche
     pub fn update( &mut self, grainId: u32 ) {
-        for grainId in &self.grainIds {
-            // get the grain from the grain list
-            let mut grain = crate::models::grain::Grain::getGrainById(*grainId).unwrap();
 
-            // TODO: get the grain from Grain.GRAINS
+        // keep track of grains that need to be removed from the avalanche
+        let mut toRemove = Vec::new();
 
-            println!("Updating grain {}", grainId);
-            if grain.state == GrainState::Unknown {
+        // get the grain from the grain list
+        let mut grain = crate::models::grain::Grain::getGrainById(grainId).unwrap();
+
+
+        println!("Start Update for Grain {} in {:?} state at location x: {}, y: {}, z: {} has energy {}", grain.id, grain.state, grain.x, grain.y, grain.z, grain.energy);
+        match grain.state {
+            GrainState::Unknown => {
+                //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
                 grain.state = GrainState::Falling;
+                //grain.fall();
+                grain.saveGrain();
+            },
+            GrainState::Falling => {
+                //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
+                // let the grain fall until it imparts a location
                 grain.fall();
                 grain.saveGrain();
-            }
-            else if grain.state == GrainState::Falling {
-                // do nothing
-            }
-            else if grain.state == GrainState::Resting {
-                // do nothing
-            }
-            else if grain.state == GrainState::Avalanche {
-                // do nothing
-            }
-            
+            },
+            GrainState::Impact => {
+                // get the location with the same x, y, z as the gain
+                let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
+                println!("------- Location {} is starting with {} grains", location.id, location.grainIds.len()); 
+                location.incomingGrain(grain.id);
+                location.saveLocation();
+                println!("------- Location {} is ending with {} grains", location.id, location.grainIds.len()); 
+                
+            },
+            GrainState::Rolling => {
+                grain.roll();
+                grain.saveGrain();
+            },
+            GrainState::Stationary => {
+                // remove the grain from the avalanche
+                toRemove.push(grain.id);
+            },
         }
+
+        println!("End Update for Grain {} in {:?} state at location x: {}, y: {}, z: {} has energy {}", grain.id, grain.state, grain.x, grain.y, grain.z, grain.energy);
+        // Remove the grains that were marked for removal
+        self.grainIds.retain(|id| !toRemove.contains(id));
+            
+        
+
+        
     }
 
     fn grainFall(&mut self, grain: &mut Grain) {

@@ -7,8 +7,8 @@ use lazy_static::lazy_static;
 
 // constants
 use crate::util::constants::{ALPHA_LANDING, X_SIZE, Y_SIZE, Z_SIZE};
-use crate::util::constants::{DEBUG, DEBUG_LOCATION, DEBUG_INIT};
-use crate::util::constants::{TOTAL_GRAINS};
+use crate::util::constants::{DEBUG, DEBUG_LOCATION, DEBUG_INIT, DEBUG_LOCAL_NEIGHBORS};
+use crate::util::constants::{TOTAL_GRAINS, TERMINAL_FREE_FALL_SPEED};
 
 
 // internal utilities
@@ -20,8 +20,9 @@ use crate::util::sandpileUtil::{normalizedPowerLawByOrdersOfMagnitudeWithAlpha};
 pub enum GrainState {
     Unknown,
     Falling,
-    Resting,
-    Avalanche,
+    Impact,
+    Rolling,
+    Stationary,
 }
 
 lazy_static! { // Require the lazy_static crate to handle static Mutex
@@ -113,23 +114,50 @@ impl Grain {
 
     pub fn fall(&mut self) {
 
+        // get the location with the same x, y, z as the gain
+        let location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z).unwrap();
+        // get the location with z-1 if z > 0
+        if self.z > 0 {
+            let below_location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z-1).unwrap();
+            // check to see if the location is empty space (not part of the pile) this is known because it will have a capacity and resilience of 0
+            if location.capacity == 0 && location.resilience == 0 || ( self.z > 0 && below_location.grainIds.len() < below_location.capacity ) {
+                // the grain is in free fall
+                self.z -= 1;
 
+                // if the grain is in free fall, increase the energy up to the terminal velocity
+                if self.energy < TERMINAL_FREE_FALL_SPEED {
+                    self.energy += 1;
+                }
+                
+                
+            } else {
+                // the grain has impacted a location
+                self.state = GrainState::Impact;
+            }
 
-        // fall until the grain lands on a location that is not at capacity
-        // fall through any locations that are empty (resilience == 0)
-        // if not at z=0, check the location below to see if it has capacity
+        }
+        else {
+            // the grain has impacted a location
+            self.state = GrainState::Impact;
+        }
 
+    }
 
+    /**
+     * Roll the grain to a lower location
+     */
+    pub fn roll(&mut self) {
+        // get the lower neighborhood for this location
+        let lowerNeighborhood = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
 
-        // while array[x][y][z].resilience == 0 || ( z > 0 && array[x][y][z-1].grainIds.len() < array[x][y][z-1].capacity ) {
-        //     z -= 1;
-        //     // increase the energy of the grain up to terminal velocity
-        //     if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
-        //         //grains[i].incrementEnergy();
-        //     }
-        // }
-
-
+        // print out the lower neighborhood which contains a Vec<(i32, i32, i32)>
+        if DEBUG && DEBUG_LOCAL_NEIGHBORS {
+            println!("Grain {} is rolling to a lower location", self.id);
+            for (x, y, z) in lowerNeighborhood {
+                println!("x: {}, y: {}, z: {}", x, y, z);
+            }
+        }
+              
 
     }
 
@@ -161,8 +189,8 @@ impl Grain {
         let mut rnd = rand::thread_rng();
 
         // start with center of the array
-        let mut x = (X_SIZE / 2) as i32;
-        let mut y = (Y_SIZE / 2) as i32;
+        let mut x = X_SIZE / 2;
+        let mut y = Y_SIZE / 2;
 
         // find the gains landing variance from center with more variance in the center
         // using an alpha of 1.5
