@@ -113,7 +113,9 @@ impl Grain {
         
     }
 
-    pub fn fall(&mut self) {
+    pub fn fall(&mut self) -> usize {
+
+        let mut movement: usize = 0;
 
         // get the location with the same x, y, z as the gain
         let location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z).unwrap();
@@ -124,6 +126,7 @@ impl Grain {
             if location.capacity == 0 && location.resilience == 0 || ( self.z > 0 && below_location.grainIds.len() < below_location.capacity ) {
                 // the grain is in free fall
                 self.z -= 1;
+                movement += 1;
 
                 // if the grain is in free fall, increase the energy up to the terminal velocity
                 if self.energy < TERMINAL_FREE_FALL_SPEED {
@@ -142,12 +145,18 @@ impl Grain {
             self.state = GrainState::Impact;
         }
 
+        return movement;
+
     }
 
     /**
      * Roll the grain to a lower location
      */
-    pub fn roll(&mut self) {
+    pub fn roll(&mut self) -> usize {
+
+        // keep track of the grain movement
+        let mut movement: usize = 0;
+
         // get the lower neighborhood for this location
         let lowerNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
         println!("grain at x: {}, y: {}, z: {} has a lower length of {}", self.x, self.y, self.z, lowerNeighborhood.len());
@@ -175,6 +184,8 @@ impl Grain {
             self.z = lowerNeighborhood[locationIndex].2;
             self.energy += 1;
 
+            movement += 1;
+
             
             if DEBUG && DEBUG_LOCATION {
                 println!("Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
@@ -192,12 +203,13 @@ impl Grain {
         } else {
             // the grain has made it all the way to the lowest level, check the pier neighboorhood at the same level
             let pierNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
-
+            
+            movement += 1;
 
             println!("--------------------------------------- LOWER NEIGHBORHOOD IS EMPTY --------------------------------------- z was {}", self.z);
             self.state = GrainState::Stationary;
         }
-              
+        return movement;
 
     }
 

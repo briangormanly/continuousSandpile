@@ -15,6 +15,12 @@ pub struct Avalanche {
     pub grainIds: Vec::<u32>,
     // List of all locations that have been affected by any of the gains in the avalanche
     pub locationIds: Vec::<u32>,
+
+    // total count of grain movement in the avalanche
+    pub totalMovement: usize,
+
+    // total count of grains involved in the avalanche
+    pub totalGrainsInvolved: usize,
     
     // direction of the avalanche, determines which
     pub direction: usize,
@@ -27,11 +33,14 @@ impl Avalanche {
             grainIds: Vec::<u32>::new(),
             locationIds: Vec::<u32>::new(),
             direction: 0,
+            totalMovement: 0,
+            totalGrainsInvolved: 0,
         }
     }
 
     pub fn addGrain(&mut self, grainId: u32) {
         self.grainIds.push(grainId);
+        self.totalGrainsInvolved += 1;
     }
 
     // update the movement of all the grains currently in the avalanche
@@ -55,7 +64,7 @@ impl Avalanche {
             GrainState::Falling => {
                 //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
                 // let the grain fall until it imparts a location
-                grain.fall();
+                self.totalMovement += grain.fall();
                 grain.saveGrain();
             },
             GrainState::Impact => {
@@ -90,7 +99,7 @@ impl Avalanche {
                 
             },
             GrainState::Rolling => {
-                grain.roll();
+                self.totalMovement += grain.roll();
                 grain.saveGrain();
             },
             GrainState::Stationary => {
@@ -103,38 +112,17 @@ impl Avalanche {
             },
         }
 
-        println!("|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
+        //println!("|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
         // Remove the grains that were marked for removal
-        println!("Removing grains {:?} avalanche contains before removal: {} grains", toRemove, self.grainIds.len());
+        //println!("Removing grains {:?} avalanche contains before removal: {} grains", toRemove, self.grainIds.len());
         self.grainIds.retain(|id| !toRemove.contains(id));
-        println!("Avalanche now has {} grains", self.grainIds.len());
+        //println!("Avalanche now has {} grains", self.grainIds.len());
         
 
         
     }
 
-    fn grainFall(&mut self, grain: &mut Grain) {
-
-
-        // // fall until the grain lands on a location that is not at capacity
-        // // fall through any locations that are empty (resilience == 0)
-        // // if not at z=0, check the location below to see if it has capacity
-        // while array[x][y][z].resilience == 0 || ( z > 0 && array[x][y][z-1].grainIds.len() < array[x][y][z-1].capacity ) {
-        //     z -= 1;
-        //     // increase the energy of the grain up to terminal velocity
-        //     if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
-        //         //grains[i].incrementEnergy();
-        //     }
-        // }
-
-        // while grain.energy == 0 {
-        //     grain.z -= 1;
-        //     // increase the energy of the grain up to terminal velocity
-        //     // if grains[i].energy < TERMINAL_FREE_FALL_SPEED {
-        //     //     //grains[i].incrementEnergy();
-        //     // }
-        // }
-    }
+    
 
     // Changed from &self to &mut self to allow modification
     // pub fn addGrain(&mut self, grain: &'a Grain) {

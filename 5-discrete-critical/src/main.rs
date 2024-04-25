@@ -23,8 +23,9 @@
 
 // external modules
 extern crate rand;
-use rand::Rng;
+use std::collections::HashMap;
 use std::vec::Vec;
+use rand::Rng;
 
 // internal modules
 pub mod models;
@@ -34,6 +35,8 @@ pub mod util;
 use models::avalanche::Avalanche;
 use models::grain::Grain;
 use models::location::Location;
+use models::avalanche;
+
 
 use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
 
@@ -95,7 +98,8 @@ fn main() {
         // Add the new falling grain to the avalanche, this is grain 0
         avalanches[i].addGrain(i as u32);
 
-        if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE {} START ------------", i); }
+        if DEBUG && DEBUG_AVALANCHE { println!("\n\n----------------------------------------------------------------------------------------------") };
+        if DEBUG && DEBUG_AVALANCHE { println!("Avalanche {} START", i) };
 
         // print out all of the states of the grains in the avalanche
         for grainId in &avalanches[i].grainIds {
@@ -112,15 +116,14 @@ fn main() {
             totalGrains = avalanches[i].grainIds.len();
 
             // for each grain currently in the avalanche, update the grain at this time period
-            let mut previous_len = totalGrains;
+            let previous_len = totalGrains;
             for mut j in 0..totalGrains {
                 // get the grains id
-                println!("about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
+                //println!("about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
+
                 // if the number of grains in the avalanche has changed, decrease the index
                 if avalanches[i].grainIds.len() < previous_len && j > 0 {
-                    
                     j = avalanches[i].grainIds.len() -1;
-                    println!("removing grain(s) from avalanche, new j value is {}", j);
                 }
                 let grainId = avalanches[i].grainIds[j];
                 // get the amount of grains in the avalanche before the update
@@ -129,9 +132,6 @@ fn main() {
                 // perform the update on the grain
                 avalanches[i].update( grainId );
 
-                println!("total grains in avalanche based on array length is {}, previous length is {}, j value is {}",avalanches[i].grainIds.len(), previous_len, j);
-
-                
 
                 //println!("total grains in avalanche based on array length is {}, previous length is {}, j value is {}",avalanches[i].grainIds.len(), previous_len, j);
                 // // check to see if the total grains in the avalanche has changed in the update
@@ -156,7 +156,8 @@ fn main() {
             // totalGrains = avalanches[i].grainIds.len();
         }
 
-
+        if DEBUG && DEBUG_AVALANCHE { println!("Avalanche {} END: total movement: {}, total grains involved: {}", i, avalanches[i].totalMovement, avalanches[i].totalGrainsInvolved) };
+        if DEBUG && DEBUG_AVALANCHE { println!("/n/n----------------------------------------------------------------------------------------------") };
 
         // // for each grain in the avaanche update the grain
         // // update the avalanche while there are grains in the avalanche
@@ -183,16 +184,14 @@ fn main() {
         
         
 
-        // print out all of the states of the grains in the avalanche
-        for grainId in &avalanches[i].grainIds {
-            let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
-            println!("Grain {} is in state {:?} at the end of the run", grain.id, grain.state);
-            // print each grains location
-            println!("Grain {} is at location x {}, y {}, z {}", grain.id, grain.x, grain.y, grain.z);
-        }
-
-
-        if DEBUG && DEBUG_AVALANCHE { println!("------------ AVALANCHE {} END ------------\n", i) }
+        // // print out all of the states of the grains in the avalanche
+        // for grainId in &avalanches[i].grainIds {
+        //     let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
+        //     println!("Grain {} is in state {:?} at the end of the run", grain.id, grain.state);
+        //     // print each grains location
+        //     println!("Grain {} is at location x {}, y {}, z {}", grain.id, grain.x, grain.y, grain.z);
+        // }
+        
 
 
         // // determine initial x, y, z location
@@ -264,6 +263,9 @@ fn main() {
         models::location::Location::displayAllLocationFinalPositions();
         models::grain::Grain::displayAllGrainsLocations();
         models::location::Location::displayPile();
+
+        // print the total movement of the avalanche
+        displayAvalancheTotalMovementStats(&avalanches);
     }
 
 
@@ -279,6 +281,36 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
         let avalanche = Avalanche::new(i as u32);
         avalanches.push(avalanche);
     }
+}
+
+pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
+    // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
+    let mut avalancheTotalMovementMap: HashMap<usize, Vec<u32>> = HashMap::new();
+
+    // for each avalanche in the vector, add the avalanche id to the vector of ids for the total movement value
+    for avalanche in avalanches {
+        let totalMovement = avalanche.totalMovement;
+        if avalancheTotalMovementMap.contains_key(&totalMovement) {
+            avalancheTotalMovementMap.get_mut(&totalMovement).unwrap().push(avalanche.id);
+        } else {
+            avalancheTotalMovementMap.insert(totalMovement, vec![avalanche.id]);
+        }
+    }
+
+    // print out the total movment value the ids of the avalanches that have that total movement value in ascending order of movement value
+    let mut sortedKeys: Vec<usize> = avalancheTotalMovementMap.keys().cloned().collect();
+    sortedKeys.sort();
+    for totalMovement in sortedKeys {
+        println!("Total Movement: {}", totalMovement);
+        println!("Avalanche Ids: {:?}", avalancheTotalMovementMap.get(&totalMovement).unwrap());
+    }
+
+    // print out the total movement value and the ids of the avalanches that have that total movement value
+    // for (totalMovement, ids) in avalancheTotalMovementMap {
+    //     println!("Total Movement: {}", totalMovement);
+    //     println!("Avalanche Ids: {:?}", ids);
+    // }
+
 }
 
 
