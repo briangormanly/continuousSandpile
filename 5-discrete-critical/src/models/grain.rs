@@ -23,6 +23,7 @@ pub enum GrainState {
     Impact,
     Rolling,
     Stationary,
+    Off_Pile,
 }
 
 lazy_static! { // Require the lazy_static crate to handle static Mutex
@@ -178,10 +179,21 @@ impl Grain {
             if DEBUG && DEBUG_LOCATION {
                 println!("Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
             }
-            self.state = GrainState::Impact;
+
+            // check for out of bounds and remove the grain from the system (it fell off the edge)
+            if self.x > X_SIZE || self.y > Y_SIZE {
+                self.state = GrainState::Off_Pile;
+            }
+            else {
+                self.state = GrainState::Impact;
+            }
+            
             
         } else {
-            // the grain has come to rest
+            // the grain has made it all the way to the lowest level, check the pier neighboorhood at the same level
+            let pierNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
+
+
             println!("--------------------------------------- LOWER NEIGHBORHOOD IS EMPTY --------------------------------------- z was {}", self.z);
             self.state = GrainState::Stationary;
         }

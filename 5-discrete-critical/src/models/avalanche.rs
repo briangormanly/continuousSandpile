@@ -97,6 +97,10 @@ impl Avalanche {
                 // remove the grain from the avalanche
                 toRemove.push(grain.id);
             },
+            GrainState::Off_Pile => {
+                // remove the grain from the avalanche
+                toRemove.push(grain.id);
+            },
         }
 
         println!("|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);

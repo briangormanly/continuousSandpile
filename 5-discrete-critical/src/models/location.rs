@@ -254,38 +254,45 @@ impl Location {
         let mut lowerNeighborhood: Vec<(i32, i32, i32)> = Vec::with_capacity(9);
 
     
-        if z > 0 {
-            // add the locations in the neighborhood at z-1
-            // to the lowerNeighborhood
-    
-            let minX = if x == 0 { 0 } else { x-1 } as i32;
-            let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
-            let minY = if y == 0 { 0 } else { y-1 } as i32;
-            let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE } as i32;
-            if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
-    
-            // keep track of how many locations are not at capacity in the lower neighborhood
-            let belowNumberOpen = 0;
-    
-            // iterate for each level below the current level
-            for i in minX..maxX + 1 {
-                for j in minY..maxY + 1 {
+        
+        // add the locations in the neighborhood at z-1
+        // to the lowerNeighborhood
 
-                    // check to see is the spot is in bounds
-                    if i >= X_SIZE || j >= Y_SIZE {
-                        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
-                        // add an out of bounds spot to the belowSlice array
-                       lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
-                    }
-                    else {
+        let minX = if x == 0 { 0 } else { x-1 } as i32;
+        let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
+        let minY = if y == 0 { 0 } else { y-1 } as i32;
+        let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE } as i32;
+        if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
 
-                        // get the location at this location and add to the lowerNeighborhood
-                        let location = Location::getLocationByXyz(i, j, z-1).unwrap();
-                        lowerNeighborhood.push((i, j, z-1));
+        // keep track of how many locations are not at capacity in the lower neighborhood
+        let belowNumberOpen = 0;
+
+        // iterate for each level below the current level
+        for i in minX..maxX + 1 {
+            for j in minY..maxY + 1 {
+
+                // check to see is the spot is in bounds
+                if i >= X_SIZE || j >= Y_SIZE {
+                    if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
+                    // add an out of bounds spot to the belowSlice array
+                    lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
+                }
+                else {
+                    if z > 0 {
+                         // get the location at this location and add to the lowerNeighborhood
+                         let location = Location::getLocationByXyz(i, j, z-1).unwrap();
+                         lowerNeighborhood.push((i, j, z-1));
                     }
+                    else if z == 0 {
+                         // get the location at this location and add to the lowerNeighborhood
+                         let location = Location::getLocationByXyz(i, j, z).unwrap();
+                         lowerNeighborhood.push((i, j, z));
+                    }
+                       
                 }
             }
         }
+        
         
         return lowerNeighborhood;
     }
