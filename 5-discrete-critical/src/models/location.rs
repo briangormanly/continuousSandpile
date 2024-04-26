@@ -224,17 +224,39 @@ impl Location {
             // remove the grain from the location ids
             self.grainIds.retain(|&x| x != looseGrainIds[0]);
 
+            // create a vector to hold any additional grains that fall from above
+            let mut additionalGrains: Vec<u32> = Vec::new();
+
             // change the grains state to rolling
             for grainId in &looseGrainIds {
                 let mut grain = Grain::getGrainById(*grainId).unwrap();
                 grain.state = GrainState::Rolling;
                 grain.energy += 1;
+                additionalGrains.push(grain.id);
+                
+
                 grain.saveGrain();
             }
 
+            //add the additional grains to the looseGrainIds
+            looseGrainIds.append(&mut additionalGrains);
+
             // save the location
             self.saveLocation();
-            
+
+            // check locations above to ensure they fall into the avalanche
+            for (x, y, z) in Location::getCeilingLocations(self.x, self.y, self.z) {
+                
+                let mut location = Location::getLocationByXyz(x, y, z).unwrap();
+                //println!("~~~~~~~~~~~~~ Location x: {}, y: {}, z: {} ~~~~~~~~ had location above with {} gains", x, y, z, location.grainIds.len());
+                for grainId in &location.grainIds {
+                    let mut grain = Grain::getGrainById(*grainId).unwrap();
+                    grain.state = GrainState::Rolling;
+                    grain.energy += 1;
+                    grain.saveGrain();
+                    //println!("~~~~~~~~~~~~~ Grain id: {} x: {}, y: {}, z: {} joined from above ~~~~~~~~", grain.id, grain.x, grain.y, grain.z);
+                }
+            }
 
             if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche at location x: {}, y: {}, z: {} location contains {} grains (after pertubation)", self.x, self.y, self.z, self.grainIds.len()) };
             return looseGrainIds;
@@ -269,7 +291,7 @@ impl Location {
                     // Handling edge cases where grain might "fall off"
                     if i == x && j == y {
                         // Do not add the current location itself when z is 0
-                        continue;
+                        lowerNeighborhood.push((i, j, z - 1));
                     }
                     if i == 0 || i == X_SIZE - 1 || j == 0 || j == Y_SIZE - 1 {
                         // Marked locations indicating falling off the pile
@@ -283,6 +305,18 @@ impl Location {
         }
         
         return lowerNeighborhood;
+    }
+
+    fn getCeilingLocations(x: i32, y: i32, z: i32) -> Vec<(i32, i32, i32)> {
+        let mut ceilingLocations: Vec<(i32, i32, i32)> = Vec::with_capacity(Z_SIZE as usize);
+
+        // any grains located in locations above the current location should join the avalanche by falling down
+        if z < Z_SIZE - 1 {
+            for i in z..Z_SIZE {
+                ceilingLocations.push((x, y, i));
+            }
+        }
+        return ceilingLocations;
     }
 
     /**
