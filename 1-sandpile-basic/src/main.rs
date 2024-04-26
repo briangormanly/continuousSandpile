@@ -57,7 +57,7 @@ fn main() {
     }
 
     // draw the pile
-    drawPile(&array);
+    //drawPile(&array);
 
     // print all the recorded avalanche sizes
     //println!("Avalanche sizes: {:?}", largestAvalancheSizes);
