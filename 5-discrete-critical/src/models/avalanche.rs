@@ -3,6 +3,9 @@ use rand::Rng;
 
 use crate::models::grain::Grain;
 use crate::models::grain::GrainState;
+use crate::models::location::Location;
+
+use crate::util::constants::{DEBUG, DEBUG_AVALANCHE};
 
 
 /**
@@ -53,7 +56,7 @@ impl Avalanche {
         let mut grain = crate::models::grain::Grain::getGrainById(grainId).unwrap();
 
 
-        println!("\n|{:?}| START Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
+        if DEBUG && DEBUG_AVALANCHE { println!("\n|{:?}| START Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy) };
         match grain.state {
             GrainState::Unknown => {
                 //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
@@ -70,7 +73,7 @@ impl Avalanche {
             GrainState::Impact => {
                 // get the location with the same x, y, z as the gain
                 let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
-                println!("------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds);  
+                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds) };  
 
                 // get the impact energy from the grain
                 let impactEnergy: usize = grain.energy;
@@ -79,7 +82,7 @@ impl Avalanche {
                 location.saveLocation();
 
                 
-                println!("------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()); 
+                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()) }; 
 
                 // if the location has more then 1 grain, check to see if the location has been perturbed by the impact
                 // call the location purtubation method
@@ -94,7 +97,7 @@ impl Avalanche {
                     }
                     
                 }           
-                println!("------- IMPACT Avalanche now has {} grains", self.grainIds.len()); 
+                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Avalanche now has {} grains", self.grainIds.len()) }; 
 
                 
             },
@@ -106,7 +109,7 @@ impl Avalanche {
                 // remove the grain from the avalanche
                 toRemove.push(grain.id);
             },
-            GrainState::Off_Pile => {
+            GrainState::OffPile => {
                 // remove the grain from the avalanche
                 toRemove.push(grain.id);
             },
@@ -118,21 +121,6 @@ impl Avalanche {
         self.grainIds.retain(|id| !toRemove.contains(id));
         //println!("Avalanche now has {} grains", self.grainIds.len());
         
-
-        
     }
 
-    
-
-    // Changed from &self to &mut self to allow modification
-    // pub fn addGrain(&mut self, grain: &'a Grain) {
-    //     self.grains.push(grain);
-    // }
-    // pub fn getFullAvalancheEnergy(&self) -> usize {
-    //     let mut totalEnergy = 0;
-    //     for grain in &self.grains {
-    //         totalEnergy += grain.energy;
-    //     }
-    //     return totalEnergy;
-    // }
 }

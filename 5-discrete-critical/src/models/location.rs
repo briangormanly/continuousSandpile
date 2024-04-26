@@ -159,7 +159,7 @@ impl Location {
             grain.energy = 0;
 
             // note that the grain stoped at this location
-            println!("Grain {} stopped at location x: {}, y: {}, z: {} Grian x: {}, y: {}, z: {}", grain.id, self.x, self.y, self.z, grain.x, grain.y, grain.z);
+            //println!("Grain {} stopped at location x: {}, y: {}, z: {} Grian x: {}, y: {}, z: {}", grain.id, self.x, self.y, self.z, grain.x, grain.y, grain.z);
 
             // save the grain
             grain.saveGrain();
@@ -170,8 +170,6 @@ impl Location {
 
         } else {
             // if full the grain will roll down the pile
-            println!("Capacity reached, cannot add more grains");
-
             // get the grain by its id
             let mut grain = Grain::getGrainById(grainId as u32).unwrap();
 
@@ -231,7 +229,6 @@ impl Location {
                 let mut grain = Grain::getGrainById(*grainId).unwrap();
                 grain.state = GrainState::Rolling;
                 grain.energy += 1;
-                println!("Grain id {} is part of the avalanche with status {:?} is rolling to a lower location", grain.id, grain.state);
                 grain.saveGrain();
             }
 
@@ -253,11 +250,6 @@ impl Location {
     pub fn getLowerNeighborhood( x: i32, y: i32, z: i32 ) -> Vec<(i32, i32, i32)> {
         let mut lowerNeighborhood: Vec<(i32, i32, i32)> = Vec::with_capacity(9);
 
-    
-        
-        // add the locations in the neighborhood at z-1
-        // to the lowerNeighborhood
-
         let minX = if x == 0 { 0 } else { x-1 } as i32;
         let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE } as i32;
         let minY = if y == 0 { 0 } else { y-1 } as i32;
@@ -265,34 +257,29 @@ impl Location {
         if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
 
         // keep track of how many locations are not at capacity in the lower neighborhood
-        let belowNumberOpen = 0;
+        //let belowNumberOpen = 0;
 
-        // iterate for each level below the current level
-        for i in minX..maxX + 1 {
-            for j in minY..maxY + 1 {
-
-                // check to see is the spot is in bounds
-                if i >= X_SIZE || j >= Y_SIZE {
-                    if DEBUG && DEBUG_LOCAL_NEIGHBORS { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
-                    // add an out of bounds spot to the belowSlice array
-                    lowerNeighborhood.push((X_SIZE+1, Y_SIZE+1, z-1));
-                }
-                else {
-                    if z > 0 {
-                         // get the location at this location and add to the lowerNeighborhood
-                         let location = Location::getLocationByXyz(i, j, z-1).unwrap();
-                         lowerNeighborhood.push((i, j, z-1));
+        for i in minX..=maxX {
+            for j in minY..=maxY {
+                if z > 0 {
+                    // If not at the ground level, normal neighborhood logic
+                    lowerNeighborhood.push((i, j, z - 1));
+                } else {
+                    // Handling edge cases where grain might "fall off"
+                    if i == x && j == y {
+                        // Do not add the current location itself when z is 0
+                        continue;
                     }
-                    else if z == 0 {
-                         // get the location at this location and add to the lowerNeighborhood
-                         let location = Location::getLocationByXyz(i, j, z).unwrap();
-                         lowerNeighborhood.push((i, j, z));
+                    if i == 0 || i == X_SIZE - 1 || j == 0 || j == Y_SIZE - 1 {
+                        // Marked locations indicating falling off the pile
+                        lowerNeighborhood.push((-1, -1, -1)); // Use an invalid location (-1, -1, -1) to indicate falling off
+                    } else {
+                        // Add surrounding locations at the same level
+                        lowerNeighborhood.push((i, j, z));
                     }
-                       
                 }
             }
         }
-        
         
         return lowerNeighborhood;
     }
@@ -342,109 +329,6 @@ impl Location {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    // call purtubation
-    // both require:
-    //  - the impacting grains energy at impact (parameter)
-    //  - location resilience (self.resilience)
-    //  - the number of grains in the location (self.gains.len())
-    //  - the ability to add a grain to the avalanche [DO NOT HAVE]
-    // both produce:
-    //  - determining the total impact force
-    //  - determines if resilience is broken and grains avalanche
-    //  - determines the size of the avalanche if one occurs
-    //  - ensures an avalanche is not leger the total number of grains at the location
-
-
-
-
-    // pub fn grainImpact(&mut self, grainId: u32, grainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
-
-    //     println!("-------- GRAIN IMPACT START ---------\nGrain impact at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
-    //     // first check the impact of the incoming grain on the location
-    //     let looseGrainIds = self.purtubation(grainId, grainEnergy, rnd);
-    //     println!(" purtubation produced looseGrainIds: {:?}", looseGrainIds);
-
-    //     // check to see if the location was perturbed
-    //     if looseGrainIds.len() == 0 {
-    //         // the location was not perturbed, add the grain
-    //         // Check if the location has capacity to add a grain
-    //         if self.grainIds.len() < self.capacity {
-    //             // the location is not full, add the grain
-    //             self.grainIds.push(grainId);
-    //         } else {
-    //             // pile is full, but was not perturbed, let the grain fall.
-    //             println!("Capacity reached, cannot add more grains");
-    //         }
-    //         return looseGrainIds;
-    //     } else {
-    //         // the location was perturbed, add the loose grains to the avalanche
-    //         return looseGrainIds;
-    //     }
-    // }
-
-    
-
-    
-    
-
-    //fn grainImpact(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
-
-
-    //fn grainImpact(&mut self) {
-        // // first check the impact of the incoming grain on the location
-        // self.purtubation(grain, avalanche, rnd);
-
-        // // Check if the location has capacity to add a grain
-        // if self.grains.len() < self.capacity {
-        //     // the location is not full, add the grain
-        //     self.grains.push(grain);
-        // } else {
-        //     // if full, start an avalanche
-        //     println!("Capacity reached, cannot add more grains");
-        // }
-        
-    //}
-
-    // fn purtubation(&mut self, grain: &'a Grain, avalanche: &'a mut Avalanche<'a>, rnd: &mut impl Rng) {
-    //     // get the order of magnitude of a random power-law distribution
-    //     // as random additional energy representing a purtubation of the location
-    //     // add this value to the grains current energy
-    //     let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
-    //     let tempSpeed = grain.energy + additionalEnergy as usize;
-
-    //     // determine if this purturbation will cause an avalanche
-    //     if self.resilience < tempSpeed {
-    //         // start an avalanche
-    //         println!("Avalanche started at location x: {}, y: {}, z: {}", self.x, self.y, self.z);
-    //         // set the size of the avalanche
-    //         let mut baseAvalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
-            
-    //         // ensure that the base avalanche size is not larger than the number of grains
-    //         if self.grains.len() < baseAvalancheSize {
-    //             baseAvalancheSize = self.grains.len();
-    //         }
-
-    //         // add the perturbed grain to the avalanche
-    //         avalanche.addGrain(&self.grains.pop().unwrap());
-
-    //         println!("Avalanche size: {}", avalanche.grains.len());
-
-    //     }
-    // }
     pub fn getNumberOfGrains(&self) -> usize {
         return self.grainIds.len();
     }

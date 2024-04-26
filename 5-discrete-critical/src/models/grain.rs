@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 
 // constants
 use crate::util::constants::{ALPHA_LANDING, X_SIZE, Y_SIZE, Z_SIZE};
-use crate::util::constants::{DEBUG, DEBUG_LOCATION, DEBUG_INIT, DEBUG_LOCAL_NEIGHBORS};
+use crate::util::constants::{DEBUG, DEBUG_LOCATION, DEBUG_INIT, DEBUG_LOCAL_NEIGHBORS, DEBUG_AVALANCHE, DEBUG_GRAIN_IMPACT};
 use crate::util::constants::{TOTAL_GRAINS, TERMINAL_FREE_FALL_SPEED};
 
 
@@ -23,7 +23,7 @@ pub enum GrainState {
     Impact,
     Rolling,
     Stationary,
-    Off_Pile,
+    OffPile,
 }
 
 lazy_static! { // Require the lazy_static crate to handle static Mutex
@@ -82,7 +82,7 @@ impl Grain {
         if DEBUG && DEBUG_INIT {
             let grains: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
             let length: usize = grains.len();
-            println!("---------------- Grains created with count: {} ----------------", grains.len());
+            if DEBUG && DEBUG_INIT { println!("---------------- Grains created with count: {} ----------------", grains.len()) };
         }
     }
 
@@ -159,7 +159,6 @@ impl Grain {
 
         // get the lower neighborhood for this location
         let lowerNeighborhood: Vec<(i32, i32, i32)> = crate::models::location::Location::getLowerNeighborhood(self.x, self.y, self.z);
-        println!("grain at x: {}, y: {}, z: {} has a lower length of {}", self.x, self.y, self.z, lowerNeighborhood.len());
 
         // print out the lower neighborhood which contains a Vec<(i32, i32, i32)>
         // if DEBUG && DEBUG_LOCAL_NEIGHBORS {
@@ -174,26 +173,23 @@ impl Grain {
             // pick a location at random from the lower neighborhood and fall to it.
             let mut rnd = rand::thread_rng();
             let locationIndex = rnd.gen_range(0..lowerNeighborhood.len());
-            
-            // check to see if the location has capacity
-            //if lowerNeighboorhood[locationIndex].grainIds.len() < lowerNeighboorhood[locationIndex].capacity {
-                // the grain can fall to the location
 
+            // move the grain to the new location
             self.x = lowerNeighborhood[locationIndex].0;
             self.y = lowerNeighborhood[locationIndex].1;
             self.z = lowerNeighborhood[locationIndex].2;
             self.energy += 1;
-
-            movement += 1;
-
             
-            if DEBUG && DEBUG_LOCATION {
+            movement += 1;
+            
+            
+            if DEBUG && DEBUG_AVALANCHE {
                 println!("Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
             }
 
             // check for out of bounds and remove the grain from the system (it fell off the edge)
-            if self.x > X_SIZE || self.y > Y_SIZE {
-                self.state = GrainState::Off_Pile;
+            if self.x == -1 || self.y == 1 || self.z == -1 || self.x >= X_SIZE || self.y >= Y_SIZE {
+                self.state = GrainState::OffPile;
             }
             else {
                 self.state = GrainState::Impact;
@@ -206,7 +202,6 @@ impl Grain {
             
             movement += 1;
 
-            println!("--------------------------------------- LOWER NEIGHBORHOOD IS EMPTY --------------------------------------- z was {}", self.z);
             self.state = GrainState::Stationary;
         }
         return movement;
