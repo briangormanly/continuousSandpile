@@ -72,6 +72,7 @@ impl Avalanche {
             },
             GrainState::Impact => {
                 // get the location with the same x, y, z as the gain
+                //println!("Grain {} is responding to {:?} state with xyz {}, {}, {}", grain.id, grain.state, grain.x, grain.y, grain.z);
                 let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
                 if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds) };  
 

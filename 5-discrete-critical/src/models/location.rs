@@ -234,6 +234,7 @@ impl Location {
 
             // save the location
             self.saveLocation();
+            
 
             if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche at location x: {}, y: {}, z: {} location contains {} grains (after pertubation)", self.x, self.y, self.z, self.grainIds.len()) };
             return looseGrainIds;

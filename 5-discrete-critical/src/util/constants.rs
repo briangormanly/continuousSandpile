@@ -21,12 +21,12 @@ pub const ALPHA_EXTRA_ENERGY: f64 = 1.2;
 pub const ALPHA_AVALANCHE_SIZE: f64 = 1.2;
 
 // total allowed demensions of the pile
-pub const X_SIZE: i32 = 31;
-pub const Y_SIZE: i32 = 31;
-pub const Z_SIZE: i32 = 21;
+pub const X_SIZE: i32 = 35;
+pub const Y_SIZE: i32 = 35;
+pub const Z_SIZE: i32 = 25;
 
 // Physics constants
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
-pub const TOTAL_GRAINS: usize = 10000000;
+pub const TOTAL_GRAINS: usize = 1000000;
