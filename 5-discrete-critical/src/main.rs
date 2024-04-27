@@ -58,6 +58,15 @@ use util::constants::Z_SIZE;
 use util::constants::TERMINAL_FREE_FALL_SPEED;
 use util::constants::BASE_CAPACITY;
 use util::constants::TOTAL_GRAINS;
+use util::constants::BASE_RESILIENCE;
+use util::constants::ALPHA_MAIN;
+use util::constants::ALPHA_EXTRA_ENERGY;
+use util::constants::ALPHA_AVALANCHE_SIZE;
+use util::constants::ALPHA_LOCATION_EXTRA_CAPACITY;
+use util::constants::ALPHA_LOCATION_EXTRA_RESILIENCE;
+use util::constants::BASE_AVALANCHE_METHOD;
+use util::constants::BASE_AVALANCHE_SIZE;
+use util::constants::BASE_AVALANCHE_SIZE_PERCENT;
 
 
 
@@ -154,6 +163,9 @@ fn main() {
 
     //draw the pile
     if DEBUG && DEBUG_DISPLAY_PILE {
+
+        // output the run configuration to a file
+        let _ = displayAppliactionRunConfiguration(folder_path.clone());
         
         let _ = models::location::Location::displayAllLocationFinalPositions(folder_path.clone());
         //models::grain::Grain::displayAllGrainsLocations();
@@ -181,6 +193,35 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
         let avalanche = Avalanche::new(i as u32);
         avalanches.push(avalanche);
     }
+}
+
+pub fn displayAppliactionRunConfiguration(folder_path: String) -> io::Result<()> {
+    // Create a file and wrap it in a BufWriter for efficient writing
+    let file = File::create(folder_path + "/run-configuration.txt")?;
+    let mut writer = BufWriter::new(file);
+
+    writeln!( writer, "Run configuration")?;
+    writeln!( writer, "---------------------------------------------------------------------------------------------------")?;
+    writeln!( writer, "Total Grains: {}", TOTAL_GRAINS)?;
+    writeln!( writer, "Pile Size: {} x {} x {}", X_SIZE, Y_SIZE, Z_SIZE)?;
+    writeln!( writer, "Terminal Free Fall Speed: {}", TERMINAL_FREE_FALL_SPEED)?;
+    writeln!( writer, "Base Resilience: {}", BASE_RESILIENCE)?;
+    writeln!( writer, "Base Capacity: {}", BASE_CAPACITY)?;
+    writeln!( writer, "Base Avalanche Method: {}", BASE_AVALANCHE_METHOD)?;
+    writeln!( writer, "Base Avalanche Size: (base for avalanche method=1) {}", BASE_AVALANCHE_SIZE)?;
+    writeln!( writer, "Base Avalanche Size Percent (for avalanche method=2): {}", BASE_AVALANCHE_SIZE_PERCENT)?;
+    writeln!( writer, "Alpha Main (default - not used currently): {}", ALPHA_MAIN)?;
+    writeln!( writer, "Alpha Landing (variance for initial x,y deviation from center): {}", ALPHA_LANDING)?;
+    writeln!( writer, "Alpha Extra Energy (amount of additional energy added to impact): {}", ALPHA_EXTRA_ENERGY)?;
+    writeln!( writer, "Alpha Avalanche Size (additional grains that join avalanche added to BASE by selected Method): {}", ALPHA_AVALANCHE_SIZE)?;
+    writeln!( writer, "Alpha Location Extra Capacity (additional capacity at location): {}", ALPHA_LOCATION_EXTRA_CAPACITY)?;
+    writeln!( writer, "Alpha Location Extra Resilience (additional resilience of location): {}", ALPHA_LOCATION_EXTRA_RESILIENCE)?;
+    writeln!( writer, "---------------------------------------------------------------------------------------------------")?;
+
+    // flush the writer to ensure all data is written to the file
+    writer.flush()?;
+
+    Ok(())
 }
 
 pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {

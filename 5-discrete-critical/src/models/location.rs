@@ -29,11 +29,16 @@ use crate::util::constants::ALPHA_LOCATION_EXTRA_RESILIENCE;
 use crate::util::constants::X_SIZE;
 use crate::util::constants::Y_SIZE;
 use crate::util::constants::Z_SIZE;
+use crate::util::constants::BASE_AVALANCHE_SIZE;
+use crate::util::constants::BASE_AVALANCHE_METHOD;
+use crate::util::constants::BASE_AVALANCHE_SIZE_PERCENT;
 
 // internal models
 use crate::models::grain::Grain;
 use crate::models::avalanche::Avalanche;
 use crate::models::grain::GrainState;
+
+use super::avalanche;
 
 
 //Static HashMap to store all the locations in the sandpile
@@ -212,7 +217,16 @@ impl Location {
             // start an avalanche
             if DEBUG && DEBUG_AVALANCHE { println!("**************************!! Avalanche started at location x: {}, y: {}, z: {} location contains {} grains (before pertubation)", self.x, self.y, self.z, self.grainIds.len()) };
             // set the size of the avalanche
-            let mut avalancheSize = 2 + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+            let mut avalancheSize;
+            if BASE_AVALANCHE_METHOD == 1 {
+                // use a fixed size for the avalanche
+                avalancheSize = BASE_AVALANCHE_SIZE + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+                if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche size: {}", avalancheSize) };
+            } else {
+                // use a percentage of the grains at the location for the avalanche
+                avalancheSize = (self.grainIds.len() as f64 * BASE_AVALANCHE_SIZE_PERCENT) as usize + normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_AVALANCHE_SIZE, rnd) as usize;
+                if DEBUG && DEBUG_AVALANCHE { println!("+++++ Avalanche size: {}", avalancheSize) };
+            }
             
             // ensure that the base avalanche size is not larger than the number of grains
             if self.grainIds.len() < avalancheSize {
