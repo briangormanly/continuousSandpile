@@ -188,7 +188,7 @@ impl Grain {
             }
 
             // check for out of bounds and remove the grain from the system (it fell off the edge)
-            if self.x >= -1 || self.y >= 1 || self.z >= -1 || self.x >= X_SIZE || self.y >= Y_SIZE {
+            if self.x <= -1 || self.y <= -1 || self.z <= -1 || self.x >= X_SIZE || self.y >= Y_SIZE {
                 self.state = GrainState::OffPile;
             }
             else {
