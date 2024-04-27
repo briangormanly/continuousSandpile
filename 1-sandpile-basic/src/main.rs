@@ -12,7 +12,7 @@ const Y_SIZE: usize = 22;
 const Z_SIZE: usize = 10;
 
 fn main() {
-    println!("Hello, sandpile!");
+    writeln!( writer, "Hello, sandpile!");
 
     //let mut array = [[[0usize; X_SIZE]; Z_SIZE]; Y_SIZE];
     let mut array: [[[usize; X_SIZE]; Z_SIZE]; Y_SIZE] = [[[0_usize; X_SIZE]; Z_SIZE]; Y_SIZE];
@@ -36,7 +36,7 @@ fn main() {
         let aSize: usize = checkSlope(&mut array, X_SIZE / 2, current_z, Y_SIZE / 2, 0);
 
         // print the total number of grains in the avalanche from the last update
-        //println!("iteration {} had avalanche size: {}", i, aSize);
+        //writeln!( writer, "iteration {} had avalanche size: {}", i, aSize);
 
         // record the avalanche in the approapriate index of the avalanche sizes array
         avalancheSizes[aSize] += 1;
@@ -53,22 +53,22 @@ fn main() {
     
     // move the recorded avalanche sizes to the new array
     for i in 0..largestAvalanche {
-        println!("Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
+        writeln!( writer, "Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
     }
 
     // draw the pile
     //drawPile(&array);
 
     // print all the recorded avalanche sizes
-    //println!("Avalanche sizes: {:?}", largestAvalancheSizes);
+    //writeln!( writer, "Avalanche sizes: {:?}", largestAvalancheSizes);
 }
 
 fn checkSlope( array: &mut [ [ [usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: usize, y: usize, mut aSize: usize) -> usize {
-    //println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z);
+    //writeln!( writer, "checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z);
 
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
-        //println!("checkSlope: Nothing to do - We are at the bottom of the pile");
+        //writeln!( writer, "checkSlope: Nothing to do - We are at the bottom of the pile");
         return aSize;
     }
     else {
@@ -82,12 +82,12 @@ fn checkSlope( array: &mut [ [ [usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: u
         let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE };
         let minY = if y == 0 { 0 } else { y-1 };
         let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE };
-        //println!("minX: {}, maxX: {}, minY: {}, maxY: {}", minX, maxX, minY, maxY);
+        //writeln!( writer, "minX: {}, maxX: {}, minY: {}, maxY: {}", minX, maxX, minY, maxY);
         
         // iterate for each level below the current level
         for i in minX..maxX + 1 {
             for j in minY..maxY + 1 {
-                //println!("checkSlope: Checking for grain at i: {}, z: {}, j: {} which has value: {}", i, z-1, j, array[i][z-1][j]);
+                //writeln!( writer, "checkSlope: Checking for grain at i: {}, z: {}, j: {} which has value: {}", i, z-1, j, array[i][z-1][j]);
                 if array[i][z-1][j] == 0 {
                     belowSlice[belowNumberOpen] = (i, j);
                     belowNumberOpen += 1;
@@ -98,14 +98,14 @@ fn checkSlope( array: &mut [ [ [usize; X_SIZE]; Z_SIZE]; Y_SIZE], x: usize, z: u
             }
         }
 
-        // println!("checkSlope: Below number open: {}", belowNumberOpen);
-        // println!("checkSlope: Below slice: {:?}", belowSlice);
+        // writeln!( writer, "checkSlope: Below number open: {}", belowNumberOpen);
+        // writeln!( writer, "checkSlope: Below slice: {:?}", belowSlice);
 
         if belowNumberOpen > 0 {
             // move the grain to the first open spot in the below level
             array[belowSlice[0].0][z-1][belowSlice[0].1] += 1;
             array[x][z][y] -= 1;
-            //println!("checkSlope: Grain moved to x: {}, z: {}, y: {}", belowSlice[0].0, z-1, belowSlice[0].1);
+            //writeln!( writer, "checkSlope: Grain moved to x: {}, z: {}, y: {}", belowSlice[0].0, z-1, belowSlice[0].1);
 
             // add the movment to the avalanche total
             aSize += 1;
@@ -130,7 +130,7 @@ fn drawPile(array: &[[[usize; X_SIZE]; Z_SIZE]; Y_SIZE]) {
             }
             
         }
-        println!(" ");
+        writeln!( writer, " ");
     }
-    println!(" ");
+    writeln!( writer, " ");
 }

@@ -29,4 +29,4 @@ pub const Z_SIZE: i32 = 15;
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
-pub const TOTAL_GRAINS: usize = 1000000;
+pub const TOTAL_GRAINS: usize = 100000;

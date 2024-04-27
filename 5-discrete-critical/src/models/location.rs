@@ -2,6 +2,8 @@
 extern crate rand;
 use rand::Rng;
 use std::vec::Vec;
+use std::fs::File;
+use std::io::{self, BufWriter, Write, Read};
 use std::collections::HashMap;
 use std::sync::Mutex;
 use lazy_static::lazy_static;
@@ -338,29 +340,44 @@ impl Location {
     /**
      * Display the contents of the sandpile
      */
-    pub fn displayPile() {
+    pub fn displayPile( folder_path: String ) -> io::Result<()> {
+
+        // Create a file and wrap it in a BufWriter for efficient writing
+        let file = File::create(folder_path + "/display-pile.txt")?;
+        let mut writer = BufWriter::new(file);
+
         // show the contents of all the locations in the sandpile
         let mut grandTotal = 0;
         for z in (0..Z_SIZE).rev() {
             for y in 0..Y_SIZE {
-                print!("\n");
+                write!( writer, "\n")?;
                 for x in 0..X_SIZE {
                     // get the location at this x, y, z
                     let location = Location::getLocationByXyz(x, y, z).unwrap();
 
                     //print!("x:{}, y:{}, z:{} value:{}", x, y, z, );
-                    print!("{}", location.getNumberOfGrains());
+                    write!( writer, "{}", location.getNumberOfGrains())?;
                     grandTotal += location.getNumberOfGrains();
                 }
             }
-            println!("\n");
+            write!( writer, "\n")?;
         }
-        println!(" ");
-        println!("Total grains in the pile: {}", grandTotal);
+        writeln!( writer, " ")?;
+        writeln!( writer, "Total grains in the pile: {}", grandTotal)?;
+
+        // flush the writer to ensure all data is written to the file
+        writer.flush()?;
+
+        Ok(())
 
     }
 
-    pub fn displayAllLocationFinalPositions() {
+    pub fn displayAllLocationFinalPositions( folder_path: String ) -> io::Result<()> {
+
+        // Create a file and wrap it in a BufWriter for efficient writing
+        let file = File::create(folder_path + "/display-all-locations.txt")?;
+        let mut writer = BufWriter::new(file);
+
         // show the contents of all the locations in the sandpile
         for z in (0..Z_SIZE).rev() {
             for y in 0..Y_SIZE {
@@ -369,15 +386,20 @@ impl Location {
                     let location = Location::getLocationByXyz(x, y, z).unwrap();
 
                     // print the location information
-                    println!("\nx:{}, y:{}, z:{} grains: {:?}", x, y, z, location.grainIds);
+                    writeln!( writer, "\nx:{}, y:{}, z:{} grains: {:?}", x, y, z, location.grainIds)?;
                     // get all of the grains at this location and print their information
                     for grainId in &location.grainIds {
                         let grain = Grain::getGrainById(*grainId).unwrap();
-                        println!(" Grain id: {}, x: {}, y: {}, z: {}, energy: {}", grain.id, grain.x, grain.y, grain.z, grain.energy);
+                        writeln!( writer, " Grain id: {}, x: {}, y: {}, z: {}, energy: {}", grain.id, grain.x, grain.y, grain.z, grain.energy)?;
                     }
                 }
             }
         }
+
+        // flush the writer to ensure all data is written to the file
+        writer.flush()?;
+
+        Ok(())
     }
 
     pub fn getNumberOfGrains(&self) -> usize {

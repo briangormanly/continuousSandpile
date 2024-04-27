@@ -19,7 +19,7 @@ const FOLLOW_GRAIN: bool = false;
 const SHOW_PILE: bool = false;
 
 fn main() {
-    println!("Hello, sandpile!");
+    writeln!( writer, "Hello, sandpile!");
 
     let mut fallen_grains = 0;
 
@@ -58,8 +58,8 @@ fn main() {
         let x_dir: usize = rng.gen_range(0..3);
         let y_dir: usize = rng.gen_range(0..3);
 
-        if DEBUG { println!("distance_raw {} - distance: {}", distance_raw, distance); }
-        if DEBUG { println!("x_dir: {}, y_dir: {}", x_dir, y_dir); }
+        if DEBUG { writeln!( writer, "distance_raw {} - distance: {}", distance_raw, distance); }
+        if DEBUG { writeln!( writer, "x_dir: {}, y_dir: {}", x_dir, y_dir); }
 
         let mut x = X_SIZE / 2;
         let mut y = Y_SIZE / 2;
@@ -87,7 +87,7 @@ fn main() {
             }
         }
 
-        if DEBUG || FOLLOW_GRAIN { println!("\n\n placing grain at x: {}, y: {}, z:{}", x, y, current_z); }
+        if DEBUG || FOLLOW_GRAIN { writeln!( writer, "\n\n placing grain at x: {}, y: {}, z:{}", x, y, current_z); }
 
         // add the grain to the pile
         array[x][y][current_z] += 1;
@@ -96,7 +96,7 @@ fn main() {
         let aSize: usize = checkSlope(&mut array, x, y, current_z, 0, &mut fallen_grains);
 
         // print the total number of grains in the avalanche from the last update
-        if DEBUG || FOLLOW_GRAIN { println!("iteration {} had avalanche size: {}", i, aSize); }
+        if DEBUG || FOLLOW_GRAIN { writeln!( writer, "iteration {} had avalanche size: {}", i, aSize); }
 
         // record the avalanche in the approapriate index of the avalanche sizes array
         avalancheSizes[aSize] += 1;
@@ -122,7 +122,7 @@ fn main() {
 
     // move the recorded avalanche sizes to the new array
     for i in 0..largestAvalanche + 2 {
-        println!("Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
+        writeln!( writer, "Avalanche size: {} had {} occurrences", i, avalancheSizes[i]);
     }
 
 }
@@ -132,11 +132,11 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
     
     if z == 0 {
         // return, noting to do, we are at the bottom of the pile
-        //println!("checkSlope: Nothing to do - We are at the bottom of the pile");
+        //writeln!( writer, "checkSlope: Nothing to do - We are at the bottom of the pile");
         return aSize;
     }
     else {
-        if DEBUG { println!("checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z); }
+        if DEBUG { writeln!( writer, "checkSlope for new grain at: x: {}, y: {}, z: {}", x, y, z); }
         
         // create an 2D array that contains tuples of open spots for each level below the current level (z)
         //let mut openSpots [ [(0, 0); 9]; z ];
@@ -147,7 +147,7 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
         let maxX = if x+1 < X_SIZE { x+1 } else { X_SIZE };
         let minY = if y == 0 { 0 } else { y-1 };
         let maxY = if y+1 < Y_SIZE { y+1 } else { Y_SIZE };
-        if DEBUG { println!("Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
+        if DEBUG { writeln!( writer, "Neighborhood to check - minX: {}, maxX: {}, minY: {}, maxY: {} for z:: {}", minX, maxX, minY, maxY, z-1); }
 
         
         
@@ -156,7 +156,7 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
             for j in minY..maxY + 1 {
                 // check to see is the spot is in bounds
                 if i >= X_SIZE || j >= Y_SIZE  {
-                    if DEBUG { println!("checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
+                    if DEBUG { writeln!( writer, "checkSlope: out of bounds spot possible: x: {}, y: {}", i, j); }
                     // add an out of bounds spot to the belowSlice array
                     belowSlice[belowNumberOpen] = (i, j);
                     belowNumberOpen += 1;
@@ -164,15 +164,15 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
                     //continue;
                 }
                 else if array[i][j][z-1] == 0 {
-                    if DEBUG { println!("checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1); }
+                    if DEBUG { writeln!( writer, "checkSlope: Found open spot at x: {}, y: {}, z: {}", i, j, z-1); }
                     belowSlice[belowNumberOpen] = (i, j);
                     belowNumberOpen += 1;
                 }
             }
         }
 
-        if DEBUG { println!("checkSlope: Below number open: {}", belowNumberOpen); }
-        if DEBUG { println!("checkSlope: Below slice: {:?}", belowSlice); }
+        if DEBUG { writeln!( writer, "checkSlope: Below number open: {}", belowNumberOpen); }
+        if DEBUG { writeln!( writer, "checkSlope: Below slice: {:?}", belowSlice); }
 
         if belowNumberOpen > 0 {
             // move the grain to the first open spot in the below level
@@ -184,7 +184,7 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
 
             // check to see if the spot is out of bounds
             if belowSlice[spot].0 >= X_SIZE || belowSlice[spot].1 >= Y_SIZE {
-                if DEBUG { println!("checkSlope: Spot chosen is out of bounds: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
+                if DEBUG { writeln!( writer, "checkSlope: Spot chosen is out of bounds: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
                 *fallen_grains += 1;
                 stopFlag = true
             }
@@ -192,7 +192,7 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
                 // check for the special case where we are on the second to lowest layer, the spot 
                 // is in the 0 index and the lowest layer has a grain there in that spot.
                 if array[belowSlice[spot].0][belowSlice[spot].1][z-2] == 1 {
-                    if DEBUG { println!("checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
+                    if DEBUG { writeln!( writer, "checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
                     *fallen_grains += 1;
                     stopFlag = true;
                 }
@@ -201,7 +201,7 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
                 // check for the special case where we are on the second to lowest layer, the spot 
                 // is in the 0 index and the lowest layer has a grain there in that spot.
                 if array[belowSlice[spot].0][belowSlice[spot].1][z-2] == 1 {
-                    if DEBUG { println!("checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
+                    if DEBUG { writeln!( writer, "checkSlope: special condition triggered!!!!!: x: {}, y: {}", belowSlice[spot].0, belowSlice[spot].1); }
                     *fallen_grains += 1;
                     stopFlag = true;
                 }
@@ -211,9 +211,9 @@ fn checkSlope( array: &mut Vec<Vec<Vec<usize>>>, x: usize, y: usize, z: usize, m
 
             }
 
-            if DEBUG || FOLLOW_GRAIN { println!("moving grain at x: {}, y: {}, z: {}", x, y, z); }
+            if DEBUG || FOLLOW_GRAIN { writeln!( writer, "moving grain at x: {}, y: {}, z: {}", x, y, z); }
             array[x][y][z] -= 1;
-            if DEBUG || FOLLOW_GRAIN { println!("checkSlope: -> Grain moved to x: {}, y: {}, z: {}", belowSlice[spot].0, belowSlice[spot].1, z-1); }
+            if DEBUG || FOLLOW_GRAIN { writeln!( writer, "checkSlope: -> Grain moved to x: {}, y: {}, z: {}", belowSlice[spot].0, belowSlice[spot].1, z-1); }
 
             // add the movment to the avalanche total
             aSize += 1;
@@ -241,9 +241,9 @@ fn drawPile(array: &Vec<Vec<Vec<usize>>>) {
             }
             
         }
-        println!("\n\n");
+        writeln!( writer, "\n\n");
     }
-    println!(" ");
+    writeln!( writer, " ");
 }
 
 fn drawLevel(array: &Vec<Vec<Vec<usize>>>, level: usize) {
@@ -258,7 +258,7 @@ fn drawLevel(array: &Vec<Vec<Vec<usize>>>, level: usize) {
         }
         
     }
-    println!("\n\n");
+    writeln!( writer, "\n\n");
 }
 
 fn validatePile(array: &Vec<Vec<Vec<usize>>>, fallen_grains: &mut usize) {
@@ -270,7 +270,7 @@ fn validatePile(array: &Vec<Vec<Vec<usize>>>, fallen_grains: &mut usize) {
         for i in 0..Y_SIZE {
             for k in 0..Z_SIZE {
                 if array[i][j][k] > 1 {
-                    println!("validatePile: Grain at x: {}, z: {}, y: {} has value: {}", i, j, k, array[i][j][k]);
+                    writeln!( writer, "validatePile: Grain at x: {}, z: {}, y: {} has value: {}", i, j, k, array[i][j][k]);
                 }
                 else if array[i][j][k] == 1 {
                     pile_grains += 1;
@@ -281,8 +281,8 @@ fn validatePile(array: &Vec<Vec<Vec<usize>>>, fallen_grains: &mut usize) {
             }
         }
     }
-    println!("validatePile: Pile validated");
-    println!("validatePile: Total grains: {}", pile_grains);
-    println!("validatePile: Fallen grains: {}", fallen_grains);
-    println!("validatePile: Empty spots: {}", empty_spots);
+    writeln!( writer, "validatePile: Pile validated");
+    writeln!( writer, "validatePile: Total grains: {}", pile_grains);
+    writeln!( writer, "validatePile: Fallen grains: {}", fallen_grains);
+    writeln!( writer, "validatePile: Empty spots: {}", empty_spots);
 }

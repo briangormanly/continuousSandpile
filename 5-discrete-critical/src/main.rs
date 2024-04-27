@@ -24,9 +24,11 @@
 // external modules
 extern crate rand;
 use std::collections::HashMap;
-use std::io::{self, Read, Write};
+use std::fs::{self, File};
+use std::io::{self, BufWriter, Write, Read};
 use std::vec::Vec;
 use rand::Rng;
+use chrono::Local;
 
 
 // internal modules
@@ -60,6 +62,19 @@ use util::constants::TOTAL_GRAINS;
 
 
 fn main() {
+    
+    
+    // Each run's data is stored in a folder named with the current timestamp-number of grains-size of pile
+    
+    // Generate the current timestamp as a folder name
+    let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
+    //let timestamp = format!("{}-{}-{}", timestamp, TOTAL_GRAINS, X_SIZE * Y_SIZE * Z_SIZE);
+    let folder_path = format!("./data/{}", timestamp + "-gs-" + &TOTAL_GRAINS.to_string() + "-ps-" + &X_SIZE.to_string() + "-" + &Y_SIZE.to_string() + "-" + &Z_SIZE.to_string());
+
+    // Create the directory using the path
+    let _ = fs::create_dir_all(&folder_path);
+
+
     // create a random number generator
     let mut rnd = rand::thread_rng();
 
@@ -84,7 +99,7 @@ fn main() {
     initializeAvalanches(&mut avalanches);
 
     if DEBUG && DEBUG_INIT {
-        println!("---------------- Avalanches created with count: {} ----------------", avalanches.len());
+        println!( "---------------- Avalanches created with count: {} ----------------", avalanches.len());
     }
 
 
@@ -94,8 +109,8 @@ fn main() {
         // Add the new falling grain to the avalanche, this is grain 0
         avalanches[i].addGrain(i as u32);
 
-        if DEBUG && DEBUG_AVALANCHE { println!("\n\n----------------------------------------------------------------------------------------------") };
-        if DEBUG && DEBUG_AVALANCHE { println!("Avalanche {} START", i) };
+        if DEBUG && DEBUG_AVALANCHE { println!( "\n\n----------------------------------------------------------------------------------------------") };
+        if DEBUG && DEBUG_AVALANCHE { println!( "Avalanche {} START", i) };
 
         // print out all of the states of the grains in the avalanche
         for grainId in &avalanches[i].grainIds {
@@ -115,7 +130,7 @@ fn main() {
             let previous_len = totalGrains;
             for mut j in 0..totalGrains {
                 // get the grains id
-                //println!("about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
+                //println!( "about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
 
                 // if the number of grains in the avalanche has changed, decrease the index
                 if avalanches[i].grainIds.len() < previous_len && j > 0 {
@@ -131,28 +146,24 @@ fn main() {
             }
         }
 
-        if DEBUG && DEBUG_AVALANCHE { println!("Avalanche {} END: total movement: {}, total grains involved: {}", i, avalanches[i].totalMovement, avalanches[i].totalGrainsInvolved) };
-        if DEBUG && DEBUG_AVALANCHE { println!("/n/n----------------------------------------------------------------------------------------------") };
+        if DEBUG && DEBUG_AVALANCHE { println!( "Avalanche {} END: total movement: {}, total grains involved: {}", i, avalanches[i].totalMovement, avalanches[i].totalGrainsInvolved) };
+        if DEBUG && DEBUG_AVALANCHE { println!( "/n/n----------------------------------------------------------------------------------------------") };
     }
 
     //draw the pile
     if DEBUG && DEBUG_DISPLAY_PILE {
         
-        // models::location::Location::displayAllLocationFinalPositions();
+        let _ = models::location::Location::displayAllLocationFinalPositions(folder_path.clone());
         //models::grain::Grain::displayAllGrainsLocations();
-        models::location::Location::displayPile();
+        let _ = models::location::Location::displayPile(folder_path.clone());
 
         // print the total movement of the avalanche
-        displayAvalancheTotalMovementStats(&avalanches);
+        let _ = displayAvalancheTotalMovementStats(&avalanches, folder_path.clone());
         println!("----------------------------------------------------------------------------------------------");
-        //displayAvalarcheTotalGrainsStats(&avalanches);
+        let _ = displayAvalarcheTotalGrainsStats(&avalanches, folder_path.clone());
         println!("----------------------------------------------------------------------------------------------");
-        //displayAvalancheTotalMagnatude(&avalanches);
+        let _ = displayAvalancheTotalMagnatude(&avalanches, folder_path.clone());
     }
-
-
-    // createa Location
-    //let mut location = Location::new(0, 0, 0);
 
 }
 
@@ -165,7 +176,13 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
     }
 }
 
-pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>) {
+pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+    
+    // Create a file and wrap it in a BufWriter for efficient writing
+    let file = File::create(folder_path + "/grain-stats.csv")?;
+    let mut writer = BufWriter::new(file);
+
+
     // build a hashmap that will store a vector of ids of avalanches for each discrete total grain value within the avalanches vector.
     let mut avalancheTotalGrainsMap: HashMap<usize, Vec<u32>> = HashMap::new();
 
@@ -183,20 +200,30 @@ pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>) {
     let mut sortedKeys: Vec<usize> = avalancheTotalGrainsMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    println!("Avalanche Grain Count,  Number Avalanches");
+    writeln!( writer, "Avalanche Grain Count,  Number Avalanches")?;
     for totalGrains in sortedKeys {
-        println!("{}, {:?}", totalGrains, avalancheTotalGrainsMap.get(&totalGrains).unwrap().len());
+        writeln!( writer, "{}, {:?}", totalGrains, avalancheTotalGrainsMap.get(&totalGrains).unwrap().len())?;
     }
 
     // print out the total grain value and the ids of the avalanches that have that total grain value
     // for (totalGrains, ids) in avalancheTotalGrainsMap {
-    //     println!("Total Grains: {}", totalGrains);
-    //     println!("Avalanche Ids: {:?}", ids);
+    //     println!( "Total Grains: {}", totalGrains);
+    //     println!( "Avalanche Ids: {:?}", ids);
     // }
+
+    // flush the writer to ensure all data is written to the file
+    writer.flush()?;
+
+    Ok(())
 
 }
 
-pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
+pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+
+    // Create a file and wrap it in a BufWriter for efficient writing
+    let file = File::create(folder_path + "/avalanche-movement-stats.csv")?;
+    let mut writer = BufWriter::new(file);
+    
     // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
     let mut avalancheTotalMovementMap: HashMap<usize, Vec<u32>> = HashMap::new();
 
@@ -214,16 +241,21 @@ pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
     let mut sortedKeys: Vec<usize> = avalancheTotalMovementMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    println!("Avalanche Movement, Number Avalanches");
+    writeln!( writer, "Avalanche Movement, Number Avalanches")?;
     for totalMovement in sortedKeys {
-        println!("{}, {:?}", totalMovement, avalancheTotalMovementMap.get(&totalMovement).unwrap().len());
+        writeln!( writer, "{}, {:?}", totalMovement, avalancheTotalMovementMap.get(&totalMovement).unwrap().len())?;
     }
 
     // print out the total movement value and the ids of the avalanches that have that total movement value
     // for (totalMovement, ids) in avalancheTotalMovementMap {
-    //     println!("Total Movement: {}", totalMovement);
-    //     println!("Avalanche Ids: {:?}", ids);
+    //     println!( "Total Movement: {}", totalMovement);
+    //     println!( "Avalanche Ids: {:?}", ids);
     // }
+
+    // flush the writer to ensure all data is written to the file
+    writer.flush()?;
+
+    Ok(())
 
 }
 
@@ -231,7 +263,12 @@ pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
  *  Experimental function to display the total magnatude of the avalanche
  * given as the total grains involved times the total movement of the avalanche
  */
-pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>) {
+pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+
+    // Create a file and wrap it in a BufWriter for efficient writing
+    let file = File::create(folder_path + "/avalanche-total-magnitude.csv")?;
+    let mut writer = BufWriter::new(file);
+
     // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
     let mut avalancheTotalMagnatudeMap: HashMap<usize, Vec<u32>> = HashMap::new();
 
@@ -249,10 +286,15 @@ pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>) {
     let mut sortedKeys: Vec<usize> = avalancheTotalMagnatudeMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    println!("Avalanche Magnatude, Number Avalanches");
+    writeln!( writer, "Avalanche Magnatude, Number Avalanches")?;
     for totalMagnatude in sortedKeys {
-        println!("{}, {:?}", totalMagnatude, avalancheTotalMagnatudeMap.get(&totalMagnatude).unwrap().len());
+        writeln!( writer, "{}, {:?}", totalMagnatude, avalancheTotalMagnatudeMap.get(&totalMagnatude).unwrap().len())?;
     }
+    
+    // flush the writer to ensure all data is written to the file
+    writer.flush()?;
+
+    Ok(())
 
 }
 

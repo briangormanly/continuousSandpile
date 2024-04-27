@@ -2,6 +2,7 @@
 extern crate rand;
 use rand::Rng;
 use std::collections::HashMap;
+
 use std::sync::Mutex;
 use lazy_static::lazy_static;
 
@@ -82,7 +83,7 @@ impl Grain {
         if DEBUG && DEBUG_INIT {
             let grains: std::sync::MutexGuard<'_, HashMap<u32, Grain>> = GRAINS_BY_ID.lock().unwrap();
             let length: usize = grains.len();
-            if DEBUG && DEBUG_INIT { println!("---------------- Grains created with count: {} ----------------", grains.len()) };
+            if DEBUG && DEBUG_INIT { println!( "---------------- Grains created with count: {} ----------------", grains.len()) };
         }
     }
 
@@ -162,9 +163,9 @@ impl Grain {
 
         // print out the lower neighborhood which contains a Vec<(i32, i32, i32)>
         // if DEBUG && DEBUG_LOCAL_NEIGHBORS {
-        //     println!("Grain {} is rolling to a lower location", self.id);
+        //     println!( "Grain {} is rolling to a lower location", self.id);
         //     for (x, y, z) in lowerNeighborhood {
-        //         println!("x: {}, y: {}, z: {} - Capacity: {}", x, y, z, crate::models::location::Location::getLocationByXyz(x, y, z).unwrap().capacity);
+        //         println!( "x: {}, y: {}, z: {} - Capacity: {}", x, y, z, crate::models::location::Location::getLocationByXyz(x, y, z).unwrap().capacity);
         //     }
         // }
 
@@ -184,7 +185,7 @@ impl Grain {
             
             
             if DEBUG && DEBUG_AVALANCHE {
-                println!("Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
+                println!( "Grain {} rolled to x: {}, y: {}, z: {}", self.id, self.x, self.y, self.z);
             }
 
             // check for out of bounds and remove the grain from the system (it fell off the edge)
@@ -216,11 +217,11 @@ impl Grain {
         grains.sort_by_key(|&(id, _)| id);
     
         for (id, grain) in grains {
-            println!("Grain {} is at x: {}, y: {}, z: {}", id, grain.x, grain.y, grain.z);
+            println!( "Grain {} is at x: {}, y: {}, z: {}", id, grain.x, grain.y, grain.z);
         }
     
         // Display the total number of grains
-        println!("Total grains: {}", grains_by_id_guard.len());
+        println!( "Total grains: {}", grains_by_id_guard.len());
     }
 
     /**
@@ -286,7 +287,7 @@ impl Grain {
         let z = (Z_SIZE - 1) as i32;
 
         if DEBUG && DEBUG_LOCATION {
-            println!("Grain {} initialized at: {}, y: {}, z: {}", id, x, y, z);
+            println!( "Grain {} initialized at: {}, y: {}, z: {}", id, x, y, z);
         }
 
         (x, y, z)

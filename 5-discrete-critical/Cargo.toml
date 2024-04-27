@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 rand = "*"
 lazy_static = "1.4.0"
+nix = "0.28.0"
+chrono = "0.4.19"

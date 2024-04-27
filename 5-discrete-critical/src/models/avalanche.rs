@@ -47,7 +47,7 @@ impl Avalanche {
     }
 
     // update the movement of all the grains currently in the avalanche
-    pub fn update( &mut self, grainId: u32 ) {
+    pub fn update( &mut self, grainId: u32) {
 
         // keep track of grains that need to be removed from the avalanche
         let mut toRemove = Vec::new();
@@ -56,25 +56,25 @@ impl Avalanche {
         let mut grain = crate::models::grain::Grain::getGrainById(grainId).unwrap();
 
 
-        if DEBUG && DEBUG_AVALANCHE { println!("\n|{:?}| START Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy) };
+        if DEBUG && DEBUG_AVALANCHE { println!( "\n|{:?}| START Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy) };
         match grain.state {
             GrainState::Unknown => {
-                //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
+                //println!( "Grain {} is responding to {:?} state", grain.id, grain.state);
                 grain.state = GrainState::Falling;
                 //grain.fall();
                 grain.saveGrain();
             },
             GrainState::Falling => {
-                //println!("Grain {} is responding to {:?} state", grain.id, grain.state);
+                //println!( "Grain {} is responding to {:?} state", grain.id, grain.state);
                 // let the grain fall until it imparts a location
                 self.totalMovement += grain.fall();
                 grain.saveGrain();
             },
             GrainState::Impact => {
                 // get the location with the same x, y, z as the gain
-                //println!("Grain {} is responding to {:?} state with xyz {}, {}, {}", grain.id, grain.state, grain.x, grain.y, grain.z);
+                //println!( "Grain {} is responding to {:?} state with xyz {}, {}, {}", grain.id, grain.state, grain.x, grain.y, grain.z);
                 let mut location = crate::models::location::Location::getLocationByXyz(grain.x, grain.y, grain.z).unwrap();
-                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds) };  
+                if DEBUG && DEBUG_AVALANCHE { println!( "------- IMPACT Location {} is starting with {} grains which are: {:?}", location.id, location.grainIds.len(), location.grainIds) };  
 
                 // get the impact energy from the grain
                 let impactEnergy: usize = grain.energy;
@@ -83,7 +83,7 @@ impl Avalanche {
                 location.saveLocation();
 
                 
-                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()) }; 
+                if DEBUG && DEBUG_AVALANCHE { println!( "------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()) }; 
 
                 // if the location has more then 1 grain, check to see if the location has been perturbed by the impact
                 // call the location purtubation method
@@ -98,7 +98,7 @@ impl Avalanche {
                     }
                     
                 }           
-                if DEBUG && DEBUG_AVALANCHE { println!("------- IMPACT Avalanche now has {} grains", self.grainIds.len()) }; 
+                if DEBUG && DEBUG_AVALANCHE { println!( "------- IMPACT Avalanche now has {} grains", self.grainIds.len()) }; 
 
                 
             },
@@ -116,11 +116,11 @@ impl Avalanche {
             },
         }
 
-        //println!("|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
+        //println!( "|{:?}| END Update for Grain {} at location | x: {}, y: {}, z: {} | has energy {}", grain.state, grain.id, grain.x, grain.y, grain.z, grain.energy);
         // Remove the grains that were marked for removal
-        //println!("Removing grains {:?} avalanche contains before removal: {} grains", toRemove, self.grainIds.len());
+        //println!( "Removing grains {:?} avalanche contains before removal: {} grains", toRemove, self.grainIds.len());
         self.grainIds.retain(|id| !toRemove.contains(id));
-        //println!("Avalanche now has {} grains", self.grainIds.len());
+        //println!( "Avalanche now has {} grains", self.grainIds.len());
         
     }
 

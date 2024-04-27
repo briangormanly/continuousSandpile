@@ -65,11 +65,11 @@ pub fn normalizedPowerLawByOrdersOfMagnitudeWithAlpha(alphaOverride: f64, rnd: &
 //     let y_bits = num_bits_needed(Y_SIZE);
 //     let z_bits = num_bits_needed(Z_SIZE);
 
-//     //println!("x_bits: {}, y_bits: {}, z_bits: {}", x_bits, y_bits, z_bits);
+//     //println!( "x_bits: {}, y_bits: {}, z_bits: {}", x_bits, y_bits, z_bits);
 
 //     // Encode x, y, z into a single usize using bit shifts
 //     // We shift x by the sum of the bits required for y and z
 //     // and shift y by the bits required for z
-//     //println!("(x << (y_bits + z_bits)) | (y << z_bits) | z {}", (x << (y_bits + z_bits)) | (y << z_bits) | z);
+//     //println!( "(x << (y_bits + z_bits)) | (y << z_bits) | z {}", (x << (y_bits + z_bits)) | (y << z_bits) | z);
 //     (x << (y_bits + z_bits)) | (y << z_bits) | z
 // }

@@ -24,7 +24,7 @@ pub fn setup(mut commands: Commands) {
 
 pub fn print_names(person_query: Query<&Person>) {
     for person in person_query.iter() {
-        println!("Name: {}", person.name);
+        writeln!( writer, "Name: {}", person.name);
     }
 }
 #[derive(Component)]
