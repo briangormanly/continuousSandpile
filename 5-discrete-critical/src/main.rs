@@ -24,8 +24,10 @@
 // external modules
 extern crate rand;
 use std::collections::HashMap;
+use std::io::{self, Read, Write};
 use std::vec::Vec;
 use rand::Rng;
+
 
 // internal modules
 pub mod models;
@@ -137,13 +139,15 @@ fn main() {
     if DEBUG && DEBUG_DISPLAY_PILE {
         
         // models::location::Location::displayAllLocationFinalPositions();
-        // models::grain::Grain::displayAllGrainsLocations();
+        //models::grain::Grain::displayAllGrainsLocations();
         models::location::Location::displayPile();
 
         // print the total movement of the avalanche
         displayAvalancheTotalMovementStats(&avalanches);
         println!("----------------------------------------------------------------------------------------------");
-        displayAvalarcheTotalGrainsStats(&avalanches);
+        //displayAvalarcheTotalGrainsStats(&avalanches);
+        println!("----------------------------------------------------------------------------------------------");
+        //displayAvalancheTotalMagnatude(&avalanches);
     }
 
 
@@ -179,7 +183,7 @@ pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>) {
     let mut sortedKeys: Vec<usize> = avalancheTotalGrainsMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    println!("Avalanche Grain Count: | Number Avalanches:");
+    println!("Avalanche Grain Count,  Number Avalanches");
     for totalGrains in sortedKeys {
         println!("{}, {:?}", totalGrains, avalancheTotalGrainsMap.get(&totalGrains).unwrap().len());
     }
@@ -210,7 +214,7 @@ pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
     let mut sortedKeys: Vec<usize> = avalancheTotalMovementMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    println!("Avalanche Movement: | Number Avalanches:");
+    println!("Avalanche Movement, Number Avalanches");
     for totalMovement in sortedKeys {
         println!("{}, {:?}", totalMovement, avalancheTotalMovementMap.get(&totalMovement).unwrap().len());
     }
@@ -220,6 +224,35 @@ pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>) {
     //     println!("Total Movement: {}", totalMovement);
     //     println!("Avalanche Ids: {:?}", ids);
     // }
+
+}
+
+/**
+ *  Experimental function to display the total magnatude of the avalanche
+ * given as the total grains involved times the total movement of the avalanche
+ */
+pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>) {
+    // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
+    let mut avalancheTotalMagnatudeMap: HashMap<usize, Vec<u32>> = HashMap::new();
+
+    // for each avalanche in the vector, add the avalanche id to the vector of ids for the total movement value
+    for avalanche in avalanches {
+        let totalMagnatude = avalanche.totalGrainsInvolved * avalanche.totalMovement;
+        if avalancheTotalMagnatudeMap.contains_key(&totalMagnatude) {
+            avalancheTotalMagnatudeMap.get_mut(&totalMagnatude).unwrap().push(avalanche.id);
+        } else {
+            avalancheTotalMagnatudeMap.insert(totalMagnatude, vec![avalanche.id]);
+        }
+    }
+
+    // print out the total movment value the ids of the avalanches that have that total movement value in ascending order of movement value
+    let mut sortedKeys: Vec<usize> = avalancheTotalMagnatudeMap.keys().cloned().collect();
+
+    sortedKeys.sort();
+    println!("Avalanche Magnatude, Number Avalanches");
+    for totalMagnatude in sortedKeys {
+        println!("{}, {:?}", totalMagnatude, avalancheTotalMagnatudeMap.get(&totalMagnatude).unwrap().len());
+    }
 
 }
 
