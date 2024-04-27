@@ -109,6 +109,10 @@ impl Avalanche {
             GrainState::Stationary => {
                 // remove the grain from the avalanche
                 toRemove.push(grain.id);
+
+                // ensure the grains energy is set to 0
+                grain.energy = 0;
+                grain.saveGrain();
             },
             GrainState::OffPile => {
                 // remove the grain from the avalanche

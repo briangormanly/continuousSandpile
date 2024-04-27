@@ -24,6 +24,8 @@ use crate::util::constants::BASE_CAPACITY;
 use crate::util::constants::BASE_RESILIENCE;
 use crate::util::constants::ALPHA_EXTRA_ENERGY;
 use crate::util::constants::ALPHA_AVALANCHE_SIZE;
+use crate::util::constants::ALPHA_LOCATION_EXTRA_CAPACITY;
+use crate::util::constants::ALPHA_LOCATION_EXTRA_RESILIENCE;
 use crate::util::constants::X_SIZE;
 use crate::util::constants::Y_SIZE;
 use crate::util::constants::Z_SIZE;
@@ -62,8 +64,8 @@ impl Location {
     pub fn new(id: u32, x: i32, y: i32, z: i32, rnd: &mut impl Rng ) -> Self {
 
         // get the order of magnitude of a random power-law distribution
-        let additionalCap = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
-        let additionalRes = normalizedPowerLawByOrdersOfMagnitude(rnd) as usize;
+        let additionalCap = normalizedPowerLawByOrdersOfMagnitudeWithAlpha( ALPHA_LOCATION_EXTRA_CAPACITY, rnd ) as usize;
+        let additionalRes = normalizedPowerLawByOrdersOfMagnitudeWithAlpha( ALPHA_LOCATION_EXTRA_RESILIENCE, rnd ) as usize;
         Location {
             id,
             x,
@@ -329,8 +331,8 @@ impl Location {
         let mut ceilingLocations: Vec<(i32, i32, i32)> = Vec::with_capacity(Z_SIZE as usize);
 
         // any grains located in locations above the current location should join the avalanche by falling down
-        if z < Z_SIZE - 1 {
-            for i in z..Z_SIZE {
+        if z < Z_SIZE - 2 {
+            for i in (z + 1)..Z_SIZE {
                 ceilingLocations.push((x, y, i));
             }
         }

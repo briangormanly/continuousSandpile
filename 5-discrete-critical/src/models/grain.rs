@@ -292,11 +292,5 @@ impl Grain {
 
         (x, y, z)
     }
-    fn increaseEnergy(&mut self, energy: usize) {
-        self.energy += energy;
-    }
-    fn incrementEnergy(&mut self) {
-        self.energy += 1;
-    }
     
 }

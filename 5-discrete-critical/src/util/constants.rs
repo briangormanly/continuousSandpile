@@ -19,6 +19,8 @@ pub const ALPHA_MAIN: f64 = 1.1;
 pub const ALPHA_LANDING: f64 = 1.4;
 pub const ALPHA_EXTRA_ENERGY: f64 = 1.2;
 pub const ALPHA_AVALANCHE_SIZE: f64 = 1.2;
+pub const ALPHA_LOCATION_EXTRA_CAPACITY: f64 = 1.2;
+pub const ALPHA_LOCATION_EXTRA_RESILIENCE: f64 = 1.2;
 
 // total allowed demensions of the pile
 pub const X_SIZE: i32 = 31;
