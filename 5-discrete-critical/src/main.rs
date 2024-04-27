@@ -41,6 +41,9 @@ use models::grain::Grain;
 use models::location::Location;
 use models::avalanche;
 
+extern crate rayon;
+use rayon::prelude::*;
+
 
 use util::sandpileUtil::normalizedPowerLawByOrdersOfMagnitudeWithAlpha;
 
@@ -63,13 +66,12 @@ use util::constants::TOTAL_GRAINS;
 
 fn main() {
     
-    
     // Each run's data is stored in a folder named with the current timestamp-number of grains-size of pile
     
     // Generate the current timestamp as a folder name
-    let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
-    let start_time: chrono::prelude::DateTime<Local> = Local::now(); 
-    
+    let timestamp: String = Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
+    let start_time: chrono::prelude::DateTime<Local> = Local::now();    
+
     //let timestamp = format!("{}-{}-{}", timestamp, TOTAL_GRAINS, X_SIZE * Y_SIZE * Z_SIZE);
     let folder_path = format!("./data/{}", timestamp + "-gs-" + &TOTAL_GRAINS.to_string() + "-ps-" + &X_SIZE.to_string() + "-" + &Y_SIZE.to_string() + "-" + &Z_SIZE.to_string());
 
@@ -83,14 +85,9 @@ fn main() {
     // initialize the locations as a static mutex hashmap
     models::location::Location::initializeLocations(&mut rnd);
 
-
     // initialize a vec of all grains
     //let mut grains: Vec<Grain> = Vec::with_capacity(TOTAL_GRAINS);
     models::grain::Grain::initializeGrains();
-
-
-    // initialize all the grains in the array
-    //initializeGrains(&mut grains, &mut rnd);
 
     // initialize a vec of all avalanches
     let mut avalanches: Vec<Avalanche> = Vec::with_capacity(TOTAL_GRAINS);
@@ -98,59 +95,42 @@ fn main() {
     // initialize all the avalanches in the array each grain causes an avalanche
     // of some size, might be as small as joining the first location it lands on
     // or as big
+    // Initialize the avalanches
     initializeAvalanches(&mut avalanches);
 
-    if DEBUG && DEBUG_INIT {
-        println!( "---------------- Avalanches created with count: {} ----------------", avalanches.len());
-    }
+    // Using Rayon to parallelize this loop
+    avalanches.par_iter_mut().enumerate().for_each(|(i, avalanche)| {
+        avalanche.addGrain(i as u32);
 
-
-    // for each grain, create an avalanche
-    for i in 0..TOTAL_GRAINS {
-
-        // Add the new falling grain to the avalanche, this is grain 0
-        avalanches[i].addGrain(i as u32);
-
-        if DEBUG && DEBUG_AVALANCHE { println!( "\n\n----------------------------------------------------------------------------------------------") };
-        if DEBUG && DEBUG_AVALANCHE { println!( "Avalanche {} START", i) };
-
-        // print out all of the states of the grains in the avalanche
-        for grainId in &avalanches[i].grainIds {
-            let grain = models::grain::Grain::getGrainById(*grainId).unwrap();
+        // Debugging start of the avalanche
+        if DEBUG && DEBUG_AVALANCHE { 
+            println!("Avalanche {} START", i);
         }
 
-        // Run through the avalanche until all grains have come to rest
-        // first get the initial number of grains in the avalanche
-        let mut totalGrains = avalanches[i].grainIds.len();
-
-        // while the number of grains in the avalanche is greater than 0, this avalanche is still active
+        // Placeholder for logic to process each grain in the avalanche
+        let mut totalGrains = avalanche.grainIds.len();
         while totalGrains > 0 {
-            // determine the number of grains in the avalanche at this point in time
-            totalGrains = avalanches[i].grainIds.len();
-
-            // for each grain currently in the avalanche, update the grain at this time period
+            // Simulate some update logic
+            totalGrains = avalanche.grainIds.len();
             let previous_len = totalGrains;
-            for mut j in 0..totalGrains {
-                // get the grains id
-                //println!( "about to look for avalanche index {} with grain index {}, the total grains in the avalanche is {} and the previous index was {}", i, j, avalanches[i].grainIds.len(), previous_len);
 
-                // if the number of grains in the avalanche has changed, decrease the index
-                if avalanches[i].grainIds.len() < previous_len && j > 0 {
-                    j = avalanches[i].grainIds.len() -1;
-                }
-                let grainId = avalanches[i].grainIds[j];
-                // get the amount of grains in the avalanche before the update
-                let previous_len = avalanches[i].grainIds.len();
+            let grain_ids = avalanche.grainIds.clone(); // Create a clone of grainIds
 
-                // perform the update on the grain
-                avalanches[i].update( grainId );
+            for grain_id in grain_ids {
+                avalanche.update(grain_id);
+            }
 
+            // If number of grains changes, possibly due to some grains settling
+            if avalanche.grainIds.len() < previous_len {
+                // Adjust processing logic if needed
             }
         }
 
-        if DEBUG && DEBUG_AVALANCHE { println!( "Avalanche {} END: total movement: {}, total grains involved: {}", i, avalanches[i].totalMovement, avalanches[i].totalGrainsInvolved) };
-        if DEBUG && DEBUG_AVALANCHE { println!( "/n/n----------------------------------------------------------------------------------------------") };
-    }
+        // Debugging end of the avalanche
+        if DEBUG && DEBUG_AVALANCHE {
+            println!("Avalanche {} END: total movement: {}, total grains involved: {}", i, avalanche.totalMovement, avalanche.totalGrainsInvolved);
+        }
+    });
 
     //draw the pile
     if DEBUG && DEBUG_DISPLAY_PILE {
@@ -304,3 +284,4 @@ pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>, folder_path: 
     Ok(())
 
 }
+
