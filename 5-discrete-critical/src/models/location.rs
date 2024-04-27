@@ -283,8 +283,10 @@ impl Location {
             // if (ceilingGrains.len() > 0) {
             //     println!("number of grains at location before removal: {} grains: {:?}", self.grainIds.len(), self.grainIds);
             // }
-            
-            self.grainIds.retain(|&x| x != looseGrainIds[0]);
+            if self.grainIds.len() > 0 && looseGrainIds.len() > 0{
+                self.grainIds.retain(|&x| x != looseGrainIds[0]);
+            }
+            //self.grainIds.retain(|&x| x != looseGrainIds[0]);
 
             // save the location
             self.saveLocation();

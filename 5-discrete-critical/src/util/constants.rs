@@ -27,9 +27,9 @@ pub const ALPHA_EXTRA_ENERGY: f64 = 1.2;
 // Amount of additional grains to add to an avalanche in addition to the base size as determined by the avalanche method (see BASE_AVALANCHE_METHOD)
 pub const ALPHA_AVALANCHE_SIZE: f64 = 1.2;
 // Additional possible capacity of location
-pub const ALPHA_LOCATION_EXTRA_CAPACITY: f64 = 1.4;
+pub const ALPHA_LOCATION_EXTRA_CAPACITY: f64 = 2.2;
 // Additional possible resilience of location
-pub const ALPHA_LOCATION_EXTRA_RESILIENCE: f64 = 1.2;
+pub const ALPHA_LOCATION_EXTRA_RESILIENCE: f64 = 1.15;
 
 // total allowed demensions of the pile
 pub const X_SIZE: i32 = 31;
@@ -41,11 +41,11 @@ pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
 pub const BASE_RESILIENCE: usize = 3;
 pub const BASE_CAPACITY: usize = 4;
 // chose between size or percent for the avalanche size
-pub const BASE_AVALANCHE_METHOD: usize = 1; // 1 = size, 2 = percent
+pub const BASE_AVALANCHE_METHOD: usize = 2; // 1 = size, 2 = percent
 // IF BASE_AVALANCHE_METHOD=1: base size of avalanche (will have result of ALPHA_AVALANCHE_SIZE added to it)
 pub const BASE_AVALANCHE_SIZE: usize = 2;
 // IF BASE_AVALANCHE_METHOD=2: base percent of grains in the avalanche from location (will have result of ALPHA_AVALANCHE_SIZE added to it)
-pub const BASE_AVALANCHE_SIZE_PERCENT: f64 = 0.5;
+pub const BASE_AVALANCHE_SIZE_PERCENT: f64 = 0.75;
 
 // Total gains to be introducted into the system
 pub const TOTAL_GRAINS: usize = 100000;
