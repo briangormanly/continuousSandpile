@@ -68,6 +68,8 @@ fn main() {
     
     // Generate the current timestamp as a folder name
     let timestamp = Local::now().format("%Y-%m-%d_%H-%M-%S").to_string();
+    let start_time: chrono::prelude::DateTime<Local> = Local::now(); 
+    
     //let timestamp = format!("{}-{}-{}", timestamp, TOTAL_GRAINS, X_SIZE * Y_SIZE * Z_SIZE);
     let folder_path = format!("./data/{}", timestamp + "-gs-" + &TOTAL_GRAINS.to_string() + "-ps-" + &X_SIZE.to_string() + "-" + &Y_SIZE.to_string() + "-" + &Z_SIZE.to_string());
 
@@ -164,6 +166,11 @@ fn main() {
         println!("----------------------------------------------------------------------------------------------");
         let _ = displayAvalancheTotalMagnatude(&avalanches, folder_path.clone());
     }
+
+    // output the total running time of the program using the start_time
+    let end_time: chrono::prelude::DateTime<Local> = Local::now();
+    let duration: chrono::TimeDelta = end_time.signed_duration_since(start_time);
+    println!("Total time: {:?}", duration);
 
 }
 
@@ -297,4 +304,3 @@ pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>, folder_path: 
     Ok(())
 
 }
-
