@@ -86,9 +86,9 @@ impl Avalanche {
                 if DEBUG && DEBUG_AVALANCHE { println!( "------- IMPACT Location {} is ending with {} grains, avalanche now has {} grains", location.id, location.grainIds.len(), self.grainIds.len()) }; 
 
                 // if the location has more then 1 grain, check to see if the location has been perturbed by the impact
-                // call the location purtubation method
+                // call the location perturbation method
                 let mut rnd = rand::thread_rng();
-                let perturbedGrains: Vec<u32> = location.purtubation(impactEnergy, &mut rnd);
+                let perturbedGrains: Vec<u32> = location.perturbation(impactEnergy, &mut rnd);
 
                 // if there are grains that have been perturbed, add them to the avalanche
                 for perGrainId in perturbedGrains {

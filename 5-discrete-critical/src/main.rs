@@ -174,7 +174,7 @@ fn main() {
         // print the total movement of the avalanche
         let _ = displayAvalancheTotalMovementStats(&avalanches, folder_path.clone());
         println!("----------------------------------------------------------------------------------------------");
-        let _ = displayAvalarcheTotalGrainsStats(&avalanches, folder_path.clone());
+        let _ = displayAvalancheTotalGrainsStats(&avalanches, folder_path.clone());
         println!("----------------------------------------------------------------------------------------------");
         let _ = displayAvalancheTotalMagnitude(&avalanches, folder_path.clone());
     }
@@ -224,7 +224,7 @@ pub fn displayApplicationRunConfiguration(folder_path: String) -> io::Result<()>
     Ok(())
 }
 
-pub fn displayAvalarcheTotalGrainsStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+pub fn displayAvalancheTotalGrainsStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
     
     // Create a file and wrap it in a BufWriter for efficient writing
     let file = File::create(folder_path + "/grain-stats.csv")?;
@@ -330,7 +330,7 @@ pub fn displayAvalancheTotalMagnitude(avalanches: &Vec<Avalanche>, folder_path: 
         }
     }
 
-    // print out the total movment value the ids of the avalanches that have that total movement value in ascending order of movement value
+    // print out the total movement value the ids of the avalanches that have that total movement value in ascending order of movement value
     let mut sortedKeys: Vec<usize> = avalancheTotalMagnitudeMap.keys().cloned().collect();
 
     sortedKeys.sort();

@@ -51,7 +51,7 @@ lazy_static! { // Require the lazy_static crate to handle static Mutex
 /**
  * Model for a location in the sandpile
  * Locations are static and do not move, they represent a point in the 3D space
- * They have a capacity for grains and a resilience to purturbations which is 
+ * They have a capacity for grains and a resilience to perturbations which is 
  * determined as a random value between 1 and 6
  */
 #[derive(Clone)]
@@ -201,14 +201,14 @@ impl Location {
     }
 
 
-    pub fn purtubation(&mut self, incomingGrainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
+    pub fn perturbation(&mut self, incomingGrainEnergy: usize, rnd: &mut impl Rng) -> Vec<u32> {
         // get the order of magnitude of a random power-law distribution
-        // as random additional energy representing a purtubation of the location
+        // as random additional energy representing a perturbation of the location
         // add this value to the grains current energy
         let additionalEnergy = normalizedPowerLawByOrdersOfMagnitudeWithAlpha(ALPHA_EXTRA_ENERGY, rnd);
         let totalEnergy = incomingGrainEnergy + additionalEnergy as usize;
 
-        // determine if this purturbation will cause an avalanche
+        // determine if this perturbation will cause an avalanche
         if DEBUG && DEBUG_AVALANCHE { 
             println!("resilience {} < total energy: {} ({} + {}) for location {}, {}, {}", self.resilience, totalEnergy, incomingGrainEnergy, additionalEnergy, self.x, self.y, self.z); 
         }
