@@ -31,7 +31,7 @@ pub const ALPHA_LOCATION_EXTRA_CAPACITY: f64 = 2.2;
 // Additional possible resilience of location
 pub const ALPHA_LOCATION_EXTRA_RESILIENCE: f64 = 1.15;
 
-// total allowed demensions of the pile
+// total allowed dimensions of the pile
 pub const X_SIZE: i32 = 61;
 pub const Y_SIZE: i32 = 61;
 pub const Z_SIZE: i32 = 37;
@@ -47,5 +47,5 @@ pub const BASE_AVALANCHE_SIZE: usize = 2;
 // IF BASE_AVALANCHE_METHOD=2: base percent of grains in the avalanche from location (will have result of ALPHA_AVALANCHE_SIZE added to it)
 pub const BASE_AVALANCHE_SIZE_PERCENT: f64 = 0.75;
 
-// Total gains to be introducted into the system
-pub const TOTAL_GRAINS: usize = 10000000;
+// Total gains to be introduced into the system
+pub const TOTAL_GRAINS: usize = 100000;

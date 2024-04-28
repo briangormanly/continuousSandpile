@@ -167,16 +167,21 @@ fn main() {
         // output the run configuration to a file
         let _ = displayApplicationRunConfiguration(folder_path.clone());
         
+        println!("Final breakdown of grains at all locations export --------------------------------------------------------------");
         let _ = models::location::Location::displayAllLocationFinalPositions(folder_path.clone());
         //models::grain::Grain::displayAllGrainsLocations();
+        println!("Visual pile export ---------------------------------------------------------------------------------------------");
         let _ = models::location::Location::displayPile(folder_path.clone());
 
         // print the total movement of the avalanche
+        println!("Total movement export ------------------------------------------------------------------------------------------");
         let _ = displayAvalancheTotalMovementStats(&avalanches, folder_path.clone());
-        println!("----------------------------------------------------------------------------------------------");
+        println!("Grain stats export ---------------------------------------------------------------------------------------------");
         let _ = displayAvalancheTotalGrainsStats(&avalanches, folder_path.clone());
-        println!("----------------------------------------------------------------------------------------------");
+        println!("Magnitude export------------------------------------------------------------------------------------------------");
         let _ = displayAvalancheTotalMagnitude(&avalanches, folder_path.clone());
+        println!("Exporting data -------------------------------------------------------------------------------------------------");
+        let _ = recordExportedData(&avalanches, folder_path.clone());
     }
 
     // output the total running time of the program using the start_time
@@ -264,6 +269,50 @@ pub fn displayAvalancheTotalGrainsStats(avalanches: &Vec<Avalanche>, folder_path
 
     Ok(())
 
+}
+
+/** 
+ * Create a txt file in the format that can be imported into python for powerlaw analysis using the powerlaw library
+ * the file contains only the total movement, each row indicates the number of avalanches with that total movement
+ * The first row is number of avalanches with total movement 1, the second row is number of avalanches with total movement 2, etc
+ * If no avalanches of a particular movement size existed in the data that size should be included (all movement sizes 
+ * should be in the data from 1-> n, n = largest movement), include these rows with the row value 0
+ */
+pub fn recordExportedData(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+    // Create a file and wrap it in a BufWriter for efficient writing
+    let file = File::create(folder_path + "/py-powerlaw-import.txt")?;
+    let mut writer = BufWriter::new(file);
+
+    // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
+    let mut avalancheTotalMovementMap: HashMap<usize, Vec<u32>> = HashMap::new();
+
+    // add the total movement of each avalanche to the hashmap, keep track of the largest movement
+    let mut largestMovement = 0;
+    for avalanche in avalanches {
+        let totalMovement = avalanche.totalMovement;
+        if totalMovement > largestMovement {
+            largestMovement = totalMovement;
+        }
+        if avalancheTotalMovementMap.contains_key(&totalMovement) {
+            avalancheTotalMovementMap.get_mut(&totalMovement).unwrap().push(avalanche.id);
+        } else {
+            avalancheTotalMovementMap.insert(totalMovement, vec![avalanche.id]);
+        }
+    }
+
+    // loop from 1 to the largest movement size, if the movement size is in the hashmap print out the number of avalanches with that movement size, otherwise print 0
+    for i in 1..largestMovement+1 {
+        if avalancheTotalMovementMap.contains_key(&i) {
+            writeln!( writer, "{}", avalancheTotalMovementMap.get(&i).unwrap().len())?;
+        } else {
+            writeln!( writer, "0")?;
+        }
+    }
+    
+    // flush the writer to ensure all data is written to the file
+    writer.flush()?;
+
+    Ok(())
 }
 
 pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
