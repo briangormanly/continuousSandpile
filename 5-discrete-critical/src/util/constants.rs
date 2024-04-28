@@ -32,9 +32,9 @@ pub const ALPHA_LOCATION_EXTRA_CAPACITY: f64 = 2.2;
 pub const ALPHA_LOCATION_EXTRA_RESILIENCE: f64 = 1.15;
 
 // total allowed demensions of the pile
-pub const X_SIZE: i32 = 31;
-pub const Y_SIZE: i32 = 31;
-pub const Z_SIZE: i32 = 15;
+pub const X_SIZE: i32 = 61;
+pub const Y_SIZE: i32 = 61;
+pub const Z_SIZE: i32 = 37;
 
 // Physics constants
 pub const TERMINAL_FREE_FALL_SPEED: usize = 3;
@@ -48,4 +48,4 @@ pub const BASE_AVALANCHE_SIZE: usize = 2;
 pub const BASE_AVALANCHE_SIZE_PERCENT: f64 = 0.75;
 
 // Total gains to be introducted into the system
-pub const TOTAL_GRAINS: usize = 100000;
+pub const TOTAL_GRAINS: usize = 10000000;

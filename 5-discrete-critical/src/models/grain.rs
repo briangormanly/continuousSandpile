@@ -119,7 +119,7 @@ impl Grain {
         let mut movement: usize = 0;
 
         // get the location with the same x, y, z as the gain
-        let location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z).unwrap();
+        let location: super::location::Location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z).unwrap();
         // get the location with z-1 if z > 0
         if self.z > 0 {
             let below_location = crate::models::location::Location::getLocationByXyz(self.x, self.y, self.z-1).unwrap();
