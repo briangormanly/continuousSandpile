@@ -13,7 +13,7 @@
      *  magnitude power-law distribution
      *
    * Moment
-     * Gains move with a magnatude (speed) and direction
+     * Gains move with a magnitude (speed) and direction
        * Initial speed starts at 1 but kinetic energy can be transferred in collisions
        * speed increases as grain falls
      * Direction of impacted grain movement is determined by direction of impacting grain
@@ -165,7 +165,7 @@ fn main() {
     if DEBUG && DEBUG_DISPLAY_PILE {
 
         // output the run configuration to a file
-        let _ = displayAppliactionRunConfiguration(folder_path.clone());
+        let _ = displayApplicationRunConfiguration(folder_path.clone());
         
         let _ = models::location::Location::displayAllLocationFinalPositions(folder_path.clone());
         //models::grain::Grain::displayAllGrainsLocations();
@@ -176,7 +176,7 @@ fn main() {
         println!("----------------------------------------------------------------------------------------------");
         let _ = displayAvalarcheTotalGrainsStats(&avalanches, folder_path.clone());
         println!("----------------------------------------------------------------------------------------------");
-        let _ = displayAvalancheTotalMagnatude(&avalanches, folder_path.clone());
+        let _ = displayAvalancheTotalMagnitude(&avalanches, folder_path.clone());
     }
 
     // output the total running time of the program using the start_time
@@ -195,7 +195,7 @@ fn initializeAvalanches(avalanches: &mut Vec<Avalanche>) {
     }
 }
 
-pub fn displayAppliactionRunConfiguration(folder_path: String) -> io::Result<()> {
+pub fn displayApplicationRunConfiguration(folder_path: String) -> io::Result<()> {
     // Create a file and wrap it in a BufWriter for efficient writing
     let file = File::create(folder_path + "/run-configuration.txt")?;
     let mut writer = BufWriter::new(file);
@@ -308,35 +308,35 @@ pub fn displayAvalancheTotalMovementStats(avalanches: &Vec<Avalanche>, folder_pa
 }
 
 /**
- *  Experimental function to display the total magnatude of the avalanche
+ *  Experimental function to display the total magnitude of the avalanche
  * given as the total grains involved times the total movement of the avalanche
  */
-pub fn displayAvalancheTotalMagnatude(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
+pub fn displayAvalancheTotalMagnitude(avalanches: &Vec<Avalanche>, folder_path: String) -> io::Result<()> {
 
     // Create a file and wrap it in a BufWriter for efficient writing
     let file = File::create(folder_path + "/avalanche-total-magnitude.csv")?;
     let mut writer = BufWriter::new(file);
 
     // build a hashmap that will store a vector of ids of avalanches for each discrete total movement value within the avalanches vector.
-    let mut avalancheTotalMagnatudeMap: HashMap<usize, Vec<u32>> = HashMap::new();
+    let mut avalancheTotalMagnitudeMap: HashMap<usize, Vec<u32>> = HashMap::new();
 
     // for each avalanche in the vector, add the avalanche id to the vector of ids for the total movement value
     for avalanche in avalanches {
-        let totalMagnatude = avalanche.totalGrainsInvolved * avalanche.totalMovement;
-        if avalancheTotalMagnatudeMap.contains_key(&totalMagnatude) {
-            avalancheTotalMagnatudeMap.get_mut(&totalMagnatude).unwrap().push(avalanche.id);
+        let totalMagnitude = avalanche.totalGrainsInvolved * avalanche.totalMovement;
+        if avalancheTotalMagnitudeMap.contains_key(&totalMagnitude) {
+            avalancheTotalMagnitudeMap.get_mut(&totalMagnitude).unwrap().push(avalanche.id);
         } else {
-            avalancheTotalMagnatudeMap.insert(totalMagnatude, vec![avalanche.id]);
+            avalancheTotalMagnitudeMap.insert(totalMagnitude, vec![avalanche.id]);
         }
     }
 
     // print out the total movment value the ids of the avalanches that have that total movement value in ascending order of movement value
-    let mut sortedKeys: Vec<usize> = avalancheTotalMagnatudeMap.keys().cloned().collect();
+    let mut sortedKeys: Vec<usize> = avalancheTotalMagnitudeMap.keys().cloned().collect();
 
     sortedKeys.sort();
-    writeln!( writer, "Avalanche Magnatude, Number Avalanches")?;
-    for totalMagnatude in sortedKeys {
-        writeln!( writer, "{}, {:?}", totalMagnatude, avalancheTotalMagnatudeMap.get(&totalMagnatude).unwrap().len())?;
+    writeln!( writer, "Avalanche Magnitude, Number Avalanches")?;
+    for totalMagnitude in sortedKeys {
+        writeln!( writer, "{}, {:?}", totalMagnitude, avalancheTotalMagnitudeMap.get(&totalMagnitude).unwrap().len())?;
     }
     
     // flush the writer to ensure all data is written to the file

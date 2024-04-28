@@ -12,7 +12,7 @@
      * Sandpile locations can have between 1 and 3 grains in the location
      *  
    * Moment
-     * Gains move with a magnatude (speed) and direction 
+     * Gains move with a magnitude (speed) and direction 
        * Initial speed starts at 1 but kinetic energy can be transferred in collisions
        * speed increases as grain falls 
      * Direction of impacted gain movement is determined by direction of impacting grain
