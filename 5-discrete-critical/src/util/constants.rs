@@ -48,4 +48,4 @@ pub const BASE_AVALANCHE_SIZE: usize = 2;
 pub const BASE_AVALANCHE_SIZE_PERCENT: f64 = 0.75;
 
 // Total gains to be introduced into the system
-pub const TOTAL_GRAINS: usize = 100000;
+pub const TOTAL_GRAINS: usize = 10000;
